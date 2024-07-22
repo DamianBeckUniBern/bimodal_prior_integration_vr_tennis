@@ -1,0 +1,584 @@
+#---------------------------------------------------------------
+# VR-Tennis multilevel regression analysis of the shifts of the sweet spot
+
+# Author: Damian Beck
+# Date: June 2024
+# Based on r version 4.3.2
+#---------------------------------------------------------------
+
+# Packages ----
+#---------------------------------------------------------------
+#install packages recommended by Field (2012)
+#install.packages("car", dependencies = TRUE)
+#install.packages("ggplot2", dependencies = TRUE)
+#install.packages("nlme", dependencies = TRUE)
+#install.packages("reshape", dependencies = TRUE)
+#install.packages("tidyverse", dependencies = TRUE)
+#install.packages("sjPlot", dependencies = TRUE)
+#install.packages("broom.mixed", dependencies = TRUE)
+#install.packages("modi", dependencies = TRUE)
+#install.packages("robustlmm", dependencies = TRUE)
+#install.packages("olsrr")
+
+library(car)
+library(ggplot2)
+library(nlme)
+library(reshape)
+library(lme4)
+library(tidyverse)
+library(sjPlot)
+library(broom.mixed)
+library(modi)
+library(robustlmm)
+library(readxl)
+library(dplyr)
+library(olsrr)
+library(psych)
+library(MASS)
+
+#function to calculate VIF in mixed models (same as car::vif())
+vif.lme <- function (mod) 
+{
+  if (any(is.na(fixef(mod)))) 
+    stop("there are aliased coefficients in the model")
+  v <- vcov(mod)
+  mm <- model.matrix(formula(mod), mod$data)
+  assign <- attributes(mm)$assign
+  if (names(fixef(mod)[1]) == "(Intercept)") {
+    v <- v[-1, -1]
+    assign <- assign[-1]
+  }
+  else warning("No intercept: vifs may not be sensible.")
+  terms <- labels(terms(mod))
+  n.terms <- length(terms)
+  if (n.terms < 2) 
+    stop("model contains fewer than 2 terms")
+  R <- cov2cor(v)
+  detR <- det(R)
+  result <- matrix(0, n.terms, 3)
+  rownames(result) <- terms
+  colnames(result) <- c("GVIF", "Df", "GVIF^(1/2Df)")
+  for (term in 1:n.terms) {
+    subs <- which(assign == term)
+    result[term, 1] <- det(as.matrix(R[subs, subs])) * det(as.matrix(R[-subs, 
+                                                                       -subs])) / detR
+    result[term, 2] <- length(subs)
+  }
+  if (all(result[, 2] == 1)) 
+    result <- result[, 1]
+  else result[, 3] <- result[, 1]^(1/(2 * result[, 2]))
+  result
+}
+
+# Import data ----
+#---------------------------------------------------------------
+data_all <- read.csv("data/output_day2.csv") 
+View(data_all)
+summary(data_all)
+
+#Make dummy variable for left and right side of bimodal distribution
+data_all$left_right <- ifelse(data_all$ball_position > 70, 1,0)
+
+# Filter data ----
+#---------------------------------------------------------------
+# Filter data by condition
+fast <- filter(data_all, data_all$condition == "fast")
+summary(fast)
+moderate <- filter(data_all, data_all$condition == "moderate")
+summary(moderate)
+slow <- filter(data_all, data_all$condition == "slow")
+summary(slow)
+
+#Make a list of number of subjects
+subjects <- unique(data_all$subject)
+
+#Analyse each condition separately
+#Fast ---- 
+#---------------------------------------------------------------
+#Outlier detection with cooks distance 
+#if more than 3 times more influential than an average point
+model_fast <- lm(horizontalDifference ~ ball_position+ left_right, data = fast)
+summary(model_fast)
+tab_model(model_fast)
+plot(model_fast,4)
+cd <- cooks.distance(model_fast)
+influential <- cd[(cd > (3 * mean(cd, na.rm = TRUE)))]
+names_of_outlier <- names(influential)
+outliers <- fast[names_of_outlier,]
+fast <- fast %>% anti_join(outliers)
+summary(fast)
+
+#Instructions according to Andy Field for the multilevel regression analysis
+#Field, A. P., Miles, J., & Field, Z. (2012). Discovering statistics using 
+#R: And sex and drugs and rock ‘n’ roll. London: Sage.
+#intercept only model
+model1_fast <- nlme::gls(horizontalDifference ~ 1,
+                         data = fast,
+                         method = "ML",
+                         na.action = na.exclude)
+tab_model(model1_fast)
+
+#One predictor model
+#correlation = corAR1(form = ~1 |index) for growth models (Field, 2012)
+model2_fast <- nlme::gls(horizontalDifference ~ ball_position, 
+                         data = fast,
+                         correlation = corAR1(form = ~ 1 | subject),
+                         method = "ML",
+                         na.action = na.exclude)
+tab_model(model2_fast)
+summary(model2_fast)
+
+#random intercept model
+model3_fast <- nlme::lme(horizontalDifference ~ ball_position, 
+                         data = fast,
+                         correlation = corAR1(form = ~ 1 | subject),
+                         random = ~ 1|subject,
+                         method = "ML",
+                         na.action = na.exclude)
+tab_model(model3_fast)
+summary(model3_fast)
+
+#random slope model
+model4_fast <- nlme::lme(horizontalDifference ~ ball_position, 
+                         data = fast,
+                         correlation = corAR1(form = ~ 1 | subject),
+                         random = ~ ball_position|subject,
+                         method = "ML",
+                         na.action = na.exclude)
+tab_model(model4_fast)
+summary(model4_fast)
+
+#additional dummy predictor left_right
+model5_fast <- nlme::lme(horizontalDifference ~ ball_position + left_right, 
+                         data = fast,
+                         correlation = corAR1(form = ~ 1 | subject),
+                         random = ~ ball_position|subject,
+                         method = "ML",
+                         na.action = na.exclude)
+tab_model(model5_fast)
+summary(model5_fast)
+
+#check colinearity
+#calculate correlation between ball_position and left_right))
+cor.test((fast$ball_position), (fast$left_right)) 
+#high correlation not necessarily a problem, check the variance inflation factor vif
+car::vif(model5_fast)
+vif.lme(model5_fast) #according to the vif, there is only little variance inflation
+
+#check for normality of residuals
+plot(residuals(model5_fast))
+qqnorm(residuals(model5_fast))
+qqline(residuals(model5_fast))
+hist(residuals(model5_fast)) #residuals are visually normally distributed
+shapiro.test(residuals(model5_fast)) #significant -> often significant with large sample sizes
+
+#Check for interaction effect and if there interaction influences the gap
+model6_fast <- nlme::lme(horizontalDifference ~ I(ball_position-70) + left_right +I(ball_position-70)*left_right, 
+                         data = fast,
+                         correlation = corAR1(form = ~ 1 | subject),
+                         random = ~ ball_position|subject,
+                         method = "ML",
+                         na.action = na.exclude)
+tab_model(model6_fast)
+summary(model6_fast)
+
+#check colinearity
+#calculate correlation between ball_position and left_right))
+cor.test((fast$ball_position), (fast$left_right)) 
+#high correlation not necessarily a problem, check the variance inflation factor vif
+car::vif(model6_fast)
+vif.lme(model6_fast) #according to the vif, there is only little variance inflation
+
+#check for normality of residuals
+plot(residuals(model6_fast))
+qqnorm(residuals(model6_fast))
+qqline(residuals(model6_fast))
+hist(residuals(model6_fast)) #residuals are visually normally distributed
+shapiro.test(residuals(model6_fast)) #significant -> often significant with large sample sizes
+
+
+#Model comparison
+anova(model1_fast, model2_fast, model3_fast, model4_fast, model5_fast, model6_fast)
+
+#calculate a robust model because of potential small violations of normality assumptions of residuals
+#same interpretation as for the non robust model
+robust_model_left_right <- rlm(horizontalDifference ~ ball_position + left_right, data = fast)
+summary(robust_model_left_right)
+tab_model(robust_model_left_right)
+
+#plot individuals with a for loop from 1 to 24
+for (i in 1:24) {
+  individual_data <- filter(fast, subject==levels(as.factor(data_all$subject))[i])
+  title <- paste("subject", i, "in the fast condition")
+  i_plot <- ggplot(individual_data, aes(x = ball_position, y = horizontalDifference)) +
+    geom_point() +  # This adds the scatter points
+    labs(title = title,
+         x = "fast condition for one subject",
+         y = "Deviation From Sweet Spot") +
+    theme_minimal() +
+    geom_segment(aes(x = 40,y = coef(model5_fast)[i,1]+ 40*coef(model5_fast)[i,2], xend = 60, yend = coef(model5_fast)[i,1]+ 60*coef(model5_fast)[i,2]), size = 2, alpha = 0.5,  linetype = "solid") +
+    geom_segment(aes(x = 80,y = coef(model5_fast)[i,1]+ 80*coef(model5_fast)[i,2]+coef(model5_fast)[i,3], xend = 100, yend = coef(model5_fast)[i,1]+ 100*coef(model5_fast)[i,2]+coef(model5_fast)[i,3]), size = 2, alpha = 0.5,  linetype = "solid") +
+    geom_segment(aes(x = 60,y = coef(model5_fast)[i,1]+ 60*coef(model5_fast)[i,2], xend = 70, yend = coef(model5_fast)[i,1]+ 70*coef(model5_fast)[i,2]), size = 0.5, alpha = 0.5,  linetype = "dotted") +
+    geom_segment(aes(x = 70,y = coef(model5_fast)[i,1]+ 70*coef(model5_fast)[i,2]+coef(model5_fast)[i,3], xend = 80, yend = coef(model5_fast)[i,1]+ 80*coef(model5_fast)[i,2]+coef(model5_fast)[i,3]), size = 0.5, alpha = 0.5,  linetype = "dotted") +
+    theme(legend.position = "none")
+  path <- file.path("plots/individual_plots_day2/fast", paste(as.character(i),"fast_plot.png"))
+  ggsave(path, i_plot, width = 9, height = 6, units = "cm")
+}
+
+#Moderate ----
+#---------------------------------------------------------------
+#Outlier detection with cooks distance 
+#if more than 3 times more influential than an average point
+model_moderate <- lm(horizontalDifference ~ ball_position+ left_right, data = moderate)
+summary(model_moderate)
+tab_model(model_moderate)
+plot(model_moderate,4)
+cd <- cooks.distance(model_moderate)
+influential <- cd[(cd > (3 * mean(cd, na.rm = TRUE)))]
+names_of_outlier <- names(influential)
+outliers <- moderate[names_of_outlier,]
+moderate <- moderate %>% anti_join(outliers)
+summary(moderate)
+
+#Instructions according to Andy Field for the multilevel regression analysis
+#Field, A. P., Miles, J., & Field, Z. (2012). Discovering statistics using 
+#R: And sex and drugs and rock ‘n’ roll. London: Sage.
+#intercept only model
+model1_moderate <- nlme::gls(horizontalDifference ~ 1,
+                             data = moderate,
+                             method = "ML",
+                             na.action = na.exclude)
+tab_model(model1_moderate)
+
+#One predictor model
+#correlation = corAR1(form = ~1 |index) for growth models (Field, 2012)
+model2_moderate <- nlme::gls(horizontalDifference ~ ball_position, 
+                             data = moderate,
+                             correlation = corAR1(form = ~ 1 | subject),
+                             method = "ML",
+                             na.action = na.exclude)
+tab_model(model2_moderate)
+summary(model2_moderate)
+
+#random intercept model
+model3_moderate <- nlme::lme(horizontalDifference ~ ball_position, 
+                             data = moderate,
+                             correlation = corAR1(form = ~ 1 | subject),
+                             random = ~ 1|subject,
+                             method = "ML",
+                             na.action = na.exclude)
+tab_model(model3_moderate)
+summary(model3_moderate)
+
+#random slope model
+model4_moderate <- nlme::lme(horizontalDifference ~ ball_position, 
+                             data = moderate,
+                             correlation = corAR1(form = ~ 1 | subject),
+                             random = ~ ball_position|subject,
+                             method = "ML",
+                             na.action = na.exclude)
+tab_model(model4_moderate)
+summary(model4_moderate)
+
+#additional dummy predictor left_right
+model5_moderate <- nlme::lme(horizontalDifference ~ ball_position + left_right, 
+                             data = moderate,
+                             correlation = corAR1(form = ~ 1 | subject),
+                             random = ~ ball_position|subject,
+                             method = "ML",
+                             na.action = na.exclude)
+tab_model(model5_moderate)
+summary(model5_moderate)
+
+#check colinearity
+#calculate correlation between ball_position and left_right))
+cor.test((moderate$ball_position), (moderate$left_right)) 
+#high correlation not necessarily a problem, check the variance inflation factor vif
+car::vif(model5_moderate)
+vif.lme(model5_moderate) #according to the vif, there is only little variance inflation
+
+#check for normality of residuals
+plot(residuals(model5_moderate))
+qqnorm(residuals(model5_moderate))
+qqline(residuals(model5_moderate))
+hist(residuals(model5_moderate)) #residuals are visually normally distributed
+shapiro.test(residuals(model5_moderate)) #significant -> often significant with large sample sizes
+
+#Check for interaction effect and if there interaction influences the gap
+model6_moderate <- nlme::lme(horizontalDifference ~ I(ball_position-70) + left_right +I(ball_position-70)*left_right, 
+                             data = moderate,
+                             correlation = corAR1(form = ~ 1 | subject),
+                             random = ~ ball_position|subject,
+                             method = "ML",
+                             na.action = na.exclude)
+tab_model(model6_moderate)
+summary(model6_moderate)
+
+#Model comparison
+anova(model1_moderate, model2_moderate, model3_moderate, model4_moderate, model5_moderate, model6_moderate)
+
+#calculate a robust model because of potential small violations of normality assumptions of residuals
+#same interpretation as for the non robust model
+robust_model_left_right <- rlm(horizontalDifference ~ ball_position + left_right, data = moderate)
+summary(robust_model_left_right)
+tab_model(robust_model_left_right)
+
+#plot individuals with a for loop from 1 to 24
+for (i in 1:24) {
+  individual_data <- filter(moderate, subject==levels(as.factor(data_all$subject))[i])
+  title <- paste("subject", i, "in the moderate condition")
+  i_plot <- ggplot(individual_data, aes(x = ball_position, y = horizontalDifference)) +
+    geom_point() +  # This adds the scatter points
+    labs(title = title,
+         x = "moderate condition for one subject",
+         y = "Deviation From Sweet Spot") +
+    theme_minimal() +
+    geom_segment(aes(x = 40,y = coef(model5_moderate)[i,1]+ 40*coef(model5_moderate)[i,2], xend = 60, yend = coef(model5_moderate)[i,1]+ 60*coef(model5_moderate)[i,2]), size = 2, alpha = 0.5,  linetype = "solid") +
+    geom_segment(aes(x = 80,y = coef(model5_moderate)[i,1]+ 80*coef(model5_moderate)[i,2]+coef(model5_moderate)[i,3], xend = 100, yend = coef(model5_moderate)[i,1]+ 100*coef(model5_moderate)[i,2]+coef(model5_moderate)[i,3]), size = 2, alpha = 0.5,  linetype = "solid") +
+    geom_segment(aes(x = 60,y = coef(model5_moderate)[i,1]+ 60*coef(model5_moderate)[i,2], xend = 70, yend = coef(model5_moderate)[i,1]+ 70*coef(model5_moderate)[i,2]), size = 0.5, alpha = 0.5,  linetype = "dotted") +
+    geom_segment(aes(x = 70,y = coef(model5_moderate)[i,1]+ 70*coef(model5_moderate)[i,2]+coef(model5_moderate)[i,3], xend = 80, yend = coef(model5_moderate)[i,1]+ 80*coef(model5_moderate)[i,2]+coef(model5_moderate)[i,3]), size = 0.5, alpha = 0.5,  linetype = "dotted") +
+    theme(legend.position = "none")
+  path <- file.path("plots/individual_plots_day2/moderate", paste(as.character(i),"moderate_plot_day2.png"))
+  ggsave(path, i_plot, width = 9, height = 6, units = "cm")
+}
+
+
+
+#Slow ----
+#---------------------------------------------------------------
+#Outlier detection with cooks distance 
+#if more than 3 times more influential than an average point
+model_slow <- lm(horizontalDifference ~ ball_position+ left_right, data = slow)
+summary(model_slow)
+tab_model(model_slow)
+plot(model_slow,4)
+cd <- cooks.distance(model_slow)
+influential <- cd[(cd > (3 * mean(cd, na.rm = TRUE)))]
+names_of_outlier <- names(influential)
+outliers <- slow[names_of_outlier,]
+slow <- slow %>% anti_join(outliers)
+summary(slow)
+
+#Instructions according to Andy Field for the multilevel regression analysis
+#Field, A. P., Miles, J., & Field, Z. (2012). Discovering statistics using 
+#R: And sex and drugs and rock ‘n’ roll. London: Sage.
+#intercept only model
+model1_slow <- nlme::gls(horizontalDifference ~ 1,
+                         data = slow,
+                         method = "ML",
+                         na.action = na.exclude)
+tab_model(model1_slow)
+
+#correlation = corAR1(form = ~1 |index) for growth models (Field, 2012)
+#One predictor model
+model2_slow <- nlme::gls(horizontalDifference ~ ball_position, 
+                         data = slow,
+                         correlation = corAR1(form = ~ 1 | subject),
+                         method = "ML",
+                         na.action = na.exclude)
+tab_model(model2_slow)
+summary(model2_slow)
+
+#random intercept model
+model3_slow <- nlme::lme(horizontalDifference ~ ball_position, 
+                         data = slow,
+                         correlation = corAR1(form = ~ 1 | subject),
+                         random = ~ 1|subject,
+                         method = "ML",
+                         na.action = na.exclude)
+tab_model(model3_slow)
+summary(model3_slow)
+
+#random slope model
+model4_slow <- nlme::lme(horizontalDifference ~ ball_position, 
+                         data = slow,
+                         correlation = corAR1(form = ~ 1 | subject),
+                         random = ~ ball_position|subject,
+                         method = "ML",
+                         na.action = na.exclude)
+tab_model(model4_slow)
+summary(model4_slow)
+
+#additional dummy predictor left_right
+model5_slow <- nlme::lme(horizontalDifference ~ ball_position + left_right, 
+                         data = slow,
+                         correlation = corAR1(form = ~ 1 | subject),
+                         random = ~ ball_position|subject,
+                         method = "ML",
+                         na.action = na.exclude)
+tab_model(model5_slow)
+summary(model5_slow)
+
+#check colinearity
+#calculate correlation between ball_position and left_right))
+cor.test((slow$ball_position), (slow$left_right)) 
+#high correlation not necessarily a problem, check the variance inflation factor vif
+car::vif(model5_slow)
+vif.lme(model5_slow) #according to the vif, there is only little variance inflation
+
+#check for normality of residuals
+plot(residuals(model5_slow))
+qqnorm(residuals(model5_slow))
+qqline(residuals(model5_slow))
+hist(residuals(model5_slow)) #residuals are visually normally distributed
+shapiro.test(residuals(model5_slow)) #significant -> often significant with large sample sizes
+
+#Check for interaction effect and if there interaction influences the gap
+model6_slow <- nlme::lme(horizontalDifference ~ I(ball_position-70) + left_right +I(ball_position-70)*left_right, 
+                         data = slow,
+                         correlation = corAR1(form = ~ 1 | subject),
+                         random = ~ ball_position|subject,
+                         method = "ML",
+                         na.action = na.exclude)
+tab_model(model6_slow)
+summary(model6_slow)
+
+#Model comparison
+anova(model1_slow, model2_slow, model3_slow, model4_slow, model5_slow, model6_slow)
+
+#calculate a robust model because of potential small violations of normality assumptions of residuals
+#robust model left_right not signicificant with less effect
+robust_model_left_right <- rlm(horizontalDifference ~ ball_position + left_right, data = slow)
+summary(robust_model_left_right)
+tab_model(robust_model_left_right)
+
+#plot individuals with a for loop from 1 to 24
+for (i in 1:24) {
+  individual_data <- filter(slow, subject==levels(as.factor(data_all$subject))[i])
+  title <- paste("subject", i, "in the slow condition")
+  i_plot <- ggplot(individual_data, aes(x = ball_position, y = horizontalDifference)) +
+    geom_point() +  # This adds the scatter points
+    labs(title = title,
+         x = "slow condition for one subject",
+         y = "Deviation From Sweet Spot") +
+    theme_minimal() +
+    geom_segment(aes(x = 40,y = coef(model5_slow)[i,1]+ 40*coef(model5_slow)[i,2], xend = 60, yend = coef(model5_slow)[i,1]+ 60*coef(model5_slow)[i,2]), size = 2, alpha = 0.5,  linetype = "solid") +
+    geom_segment(aes(x = 80,y = coef(model5_slow)[i,1]+ 80*coef(model5_slow)[i,2]+coef(model5_slow)[i,3], xend = 100, yend = coef(model5_slow)[i,1]+ 100*coef(model5_slow)[i,2]+coef(model5_slow)[i,3]), size = 2, alpha = 0.5,  linetype = "solid") +
+    geom_segment(aes(x = 60,y = coef(model5_slow)[i,1]+ 60*coef(model5_slow)[i,2], xend = 70, yend = coef(model5_slow)[i,1]+ 70*coef(model5_slow)[i,2]), size = 0.5, alpha = 0.5,  linetype = "dotted") +
+    geom_segment(aes(x = 70,y = coef(model5_slow)[i,1]+ 70*coef(model5_slow)[i,2]+coef(model5_slow)[i,3], xend = 80, yend = coef(model5_slow)[i,1]+ 80*coef(model5_slow)[i,2]+coef(model5_slow)[i,3]), size = 0.5, alpha = 0.5,  linetype = "dotted") +
+    theme(legend.position = "none")
+  path <- file.path("plots/individual_plots_day2/slow", paste(as.character(i),"slow_plot.png"))
+  ggsave(path, i_plot, width = 9, height = 6, units = "cm")
+}
+
+
+
+
+
+#plot bins ----
+#---------------------------------------------------------------
+#Function to create bins and calculate mean and 95% CI across all subjects
+create_bins_with_stats_all_subjects <- function(data) {
+  bin_ranges <- list(
+    c(40, 42), c(42, 44), c(44, 46), c(46, 48),
+    c(48, 50), c(50, 52), c(52, 54), c(54, 56),
+    c(56, 58), c(58, 60), c(80, 82), c(82, 84),
+    c(84, 86), c(86, 88), c(88, 90), c(90, 92),
+    c(92, 94), c(94, 96), c(96, 98), c(98, 100)
+  )
+  
+  subject_bins <- data.frame(bin = integer(), mean = numeric(), lower = numeric(), upper = numeric())
+  
+  for (j in seq_along(bin_ranges)) {
+    bin_range <- bin_ranges[[j]]
+    bin_data <- data %>% filter(ball_position >= bin_range[1] & ball_position < bin_range[2])
+    
+    if (nrow(bin_data) > 0) {
+      bin_mean <- mean(bin_data$horizontalDifference, na.rm = TRUE)
+      bin_se <- sd(bin_data$horizontalDifference, na.rm = TRUE) / sqrt(nrow(bin_data))
+      bin_ci <- qt(0.975, df = nrow(bin_data) - 1) * bin_se
+      
+      if (j < 11) {
+        bin_center <- 39 + 2 * j
+      } else {
+        bin_center <- 59 + 2 * j
+      }
+      
+      subject_bins <- rbind(subject_bins, data.frame(
+        bin = bin_center,
+        mean = bin_mean,
+        lower = bin_mean - bin_ci,
+        upper = bin_mean + bin_ci
+      ))
+    }
+  }
+  
+  return(subject_bins)
+}
+
+# Create bins and calculate stats across all subjects
+bins_with_stats_all_subjects_fast <- create_bins_with_stats_all_subjects(fast)
+bins_with_stats_all_subjects_moderate <- create_bins_with_stats_all_subjects(moderate)
+bins_with_stats_all_subjects_slow <- create_bins_with_stats_all_subjects(slow)
+
+
+
+
+# Plot the mean and 95% confidence intervals for each bin across all subjects
+#No interaction effect
+p <- ggplot() +
+  geom_point(data = bins_with_stats_all_subjects_fast, aes(x = bin, y = mean), color = "red") +
+  geom_errorbar(data = bins_with_stats_all_subjects_fast, aes(x = bin, ymin = lower, ymax = upper), color = "red", width = 0.2) +
+  geom_point(data = bins_with_stats_all_subjects_moderate, aes(x = bin, y = mean), color = "blue") +
+  geom_errorbar(data = bins_with_stats_all_subjects_moderate,aes(x = bin, ymin = lower, ymax = upper), color = "blue", width = 0.2) +
+  geom_point(data = bins_with_stats_all_subjects_slow, aes(x = bin, y = mean), color = "green") +
+  geom_errorbar(data = bins_with_stats_all_subjects_slow, aes(x = bin, ymin = lower, ymax = upper), color = "green", width = 0.2) +
+  labs(title = "all subjects all condition",
+       x = "ball position",
+       y = "Mean Deviation From Sweet Spot (cm)") +
+  geom_segment(aes(x = 40,y = fixef(model5_fast)[1]+ 40*fixef(model5_fast)[2], xend = 60, yend = fixef(model5_fast)[1]+ 60*fixef(model5_fast)[2]), size = 2, color = "red", linetype = "solid") +
+  geom_segment(aes(x = 80,y = fixef(model5_fast)[1]+ 80*fixef(model5_fast)[2]+fixef(model5_fast)[3], xend = 100, yend = fixef(model5_fast)[1]+ 100*fixef(model5_fast)[2]+fixef(model5_fast)[3]), size = 2, color = "red", linetype = "solid") +
+  geom_segment(aes(x = 60,y = fixef(model5_fast)[1]+ 60*fixef(model5_fast)[2], xend = 70, yend = fixef(model5_fast)[1]+ 70*fixef(model5_fast)[2]), size = 0.5, alpha = 0.5,  color = "red", linetype = "dotted") +
+  geom_segment(aes(x = 70,y = fixef(model5_fast)[1]+ 70*fixef(model5_fast)[2]+fixef(model5_fast)[3], xend = 80, yend = fixef(model5_fast)[1]+ 80*fixef(model5_fast)[2]+fixef(model5_fast)[3]), size = 0.5, color = "red", linetype = "dotted") +
+  # Add similar segments for moderate
+  geom_segment(aes(x = 40, y = fixef(model5_moderate)[1] + 40 * fixef(model5_moderate)[2], xend = 60, yend = fixef(model5_moderate)[1] + 60 * fixef(model5_moderate)[2]), size = 2, color = "blue", linetype = "solid") +
+  geom_segment(aes(x = 80, y = fixef(model5_moderate)[1] + 80 * fixef(model5_moderate)[2] + fixef(model5_moderate)[3], xend = 100, yend = fixef(model5_moderate)[1] + 100 * fixef(model5_moderate)[2] + fixef(model5_moderate)[3]), size = 2, color = "blue", linetype = "solid") +
+  geom_segment(aes(x = 60, y = fixef(model5_moderate)[1] + 60 * fixef(model5_moderate)[2], xend = 70, yend = fixef(model5_moderate)[1] + 70 * fixef(model5_moderate)[2]), size = 0.5, alpha = 0.5, color = "blue", linetype = "dotted") +
+  geom_segment(aes(x = 70, y = fixef(model5_moderate)[1] + 70 * fixef(model5_moderate)[2] + fixef(model5_moderate)[3], xend = 80, yend = fixef(model5_moderate)[1] + 80 * fixef(model5_moderate)[2] + fixef(model5_moderate)[3]), size = 0.5, color = "blue", linetype = "dotted") +
+  # Add similar segments for slow
+  geom_segment(aes(x = 40, y = fixef(model5_slow)[1] + 40 * fixef(model5_slow)[2], xend = 60, yend = fixef(model5_slow)[1] + 60 * fixef(model5_slow)[2]), size = 2, color = "green", linetype = "solid") +
+  geom_segment(aes(x = 80, y = fixef(model5_slow)[1] + 80 * fixef(model5_slow)[2] + fixef(model5_slow)[3], xend = 100, yend = fixef(model5_slow)[1] + 100 * fixef(model5_slow)[2] + fixef(model5_slow)[3]), size = 2, color = "green", linetype = "solid") +
+  geom_segment(aes(x = 60, y = fixef(model5_slow)[1] + 60 * fixef(model5_slow)[2], xend = 70, yend = fixef(model5_slow)[1] + 70 * fixef(model5_slow)[2]), size = 0.5, alpha = 0.5, color = "green", linetype = "dotted") +
+  geom_segment(aes(x = 70, y = fixef(model5_slow)[1] + 70 * fixef(model5_slow)[2] + fixef(model5_slow)[3], xend = 80, yend = fixef(model5_slow)[1] + 80 * fixef(model5_slow)[2] + fixef(model5_slow)[3]), size = 0.5, color = "green", linetype = "dotted") +
+  theme_minimal()
+
+
+# Save the plot
+ggsave(filename = "plots/all_subjects_day2.png", plot = p, width = 8, height = 6)
+
+# Print the plot
+print(p)
+
+
+#Interaction effect
+p <- ggplot() +
+  geom_point(data = bins_with_stats_all_subjects_fast, aes(x = bin, y = mean), color = "red") +
+  geom_errorbar(data = bins_with_stats_all_subjects_fast, aes(x = bin, ymin = lower, ymax = upper), color = "red", width = 0.2) +
+  geom_point(data = bins_with_stats_all_subjects_moderate, aes(x = bin, y = mean), color = "blue") +
+  geom_errorbar(data = bins_with_stats_all_subjects_moderate,aes(x = bin, ymin = lower, ymax = upper), color = "blue", width = 0.2) +
+  geom_point(data = bins_with_stats_all_subjects_slow, aes(x = bin, y = mean), color = "green") +
+  geom_errorbar(data = bins_with_stats_all_subjects_slow, aes(x = bin, ymin = lower, ymax = upper), color = "green", width = 0.2) +
+  labs(title = "all subjects all condition with interaction",
+       x = "ball position",
+       y = "Mean Deviation From Sweet Spot (cm)") +
+  geom_segment(aes(x = 40,y = fixef(model6_slow)[1] - 30*fixef(model6_slow)[2], xend = 60, yend = fixef(model6_slow)[1]- 10*fixef(model6_slow)[2]), size = 1.5, color = "green", linetype = "solid") +
+  geom_segment(aes(x = 60,y = fixef(model6_slow)[1] - 10*fixef(model6_slow)[2], xend = 70, yend = fixef(model6_slow)[1]+ 0*fixef(model6_slow)[2]), size = 0.5, color = "green", linetype = "dotted") +
+  geom_segment(aes(x = 80,y = fixef(model6_slow)[1]+ 10*fixef(model6_slow)[2]+fixef(model6_slow)[3]+10*fixef(model6_slow)[4], xend = 100, yend = fixef(model6_slow)[1]+ 30*fixef(model6_slow)[2]+fixef(model6_slow)[3]+30*fixef(model6_slow)[4]), size = 1.5, color = "green", linetype = "solid") +
+  geom_segment(aes(x = 70,y = fixef(model6_slow)[1]+ 0*fixef(model6_slow)[2]+fixef(model6_slow)[3]+0*fixef(model6_slow)[4], xend = 80, yend = fixef(model6_slow)[1]+ 10*fixef(model6_slow)[2]+fixef(model6_slow)[3]+10*fixef(model6_slow)[4]), size = 0.5, color = "green", linetype = "dotted") +
+  geom_segment(aes(x = 40,y = fixef(model6_moderate)[1] - 30*fixef(model6_moderate)[2], xend = 60, yend = fixef(model6_moderate)[1]- 10*fixef(model6_moderate)[2]), size = 1.5, color = "blue", linetype = "solid") +
+  geom_segment(aes(x = 60,y = fixef(model6_moderate)[1] - 10*fixef(model6_moderate)[2], xend = 70, yend = fixef(model6_moderate)[1]+ 0*fixef(model6_moderate)[2]), size = 0.5, color = "blue", linetype = "dotted") +
+  geom_segment(aes(x = 80,y = fixef(model6_moderate)[1]+ 10*fixef(model6_moderate)[2]+fixef(model6_moderate)[3]+10*fixef(model6_moderate)[4], xend = 100, yend = fixef(model6_moderate)[1]+ 30*fixef(model6_moderate)[2]+fixef(model6_moderate)[3]+30*fixef(model6_moderate)[4]), size = 1.5, color = "blue", linetype = "solid") +
+  geom_segment(aes(x = 70,y = fixef(model6_moderate)[1]+ 0*fixef(model6_moderate)[2]+fixef(model6_moderate)[3]+0*fixef(model6_moderate)[4], xend = 80, yend = fixef(model6_moderate)[1]+ 10*fixef(model6_moderate)[2]+fixef(model6_moderate)[3]+10*fixef(model6_moderate)[4]), size = 0.5, color = "blue", linetype = "dotted") +
+  geom_segment(aes(x = 40,y = fixef(model6_fast)[1] - 30*fixef(model6_fast)[2], xend = 60, yend = fixef(model6_fast)[1]- 10*fixef(model6_fast)[2]), size = 1.5, color = "red", linetype = "solid") +
+  geom_segment(aes(x = 60,y = fixef(model6_fast)[1] - 10*fixef(model6_fast)[2], xend = 70, yend = fixef(model6_fast)[1]+ 0*fixef(model6_fast)[2]), size = 0.5, color = "red", linetype = "dotted") +
+  geom_segment(aes(x = 80,y = fixef(model6_fast)[1]+ 10*fixef(model6_fast)[2]+fixef(model6_fast)[3]+10*fixef(model6_fast)[4], xend = 100, yend = fixef(model6_fast)[1]+ 30*fixef(model6_fast)[2]+fixef(model6_fast)[3]+30*fixef(model6_fast)[4]), size = 1.5, color = "red", linetype = "solid") +
+  geom_segment(aes(x = 70,y = fixef(model6_fast)[1]+ 0*fixef(model6_fast)[2]+fixef(model6_fast)[3]+0*fixef(model6_fast)[4], xend = 80, yend = fixef(model6_fast)[1]+ 10*fixef(model6_fast)[2]+fixef(model6_fast)[3]+10*fixef(model6_fast)[4]), size = 0.5, color = "red", linetype = "dotted") +
+  theme_minimal()
+
+
+# Save the plot
+ggsave(filename = "plots/all_subjects_interaction_day2.png", plot = p, width = 8, height = 6)
+
+# Print the plot
+print(p)
+
