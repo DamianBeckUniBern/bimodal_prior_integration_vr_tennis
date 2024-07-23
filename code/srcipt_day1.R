@@ -8,7 +8,7 @@
 
 #Multilevel regression analysis (or synonym "linear mixed models") 
 #of the horizontal differences between the ball and 
-#the racket centre (variable = “hoiziontal_difference”)
+#the racket center (variable = “horizontal_difference”)
 #as a function of ball position (variable = “ball_position”) 
 #and uncertainty-condition (variable = “condition” slow/moderate/fast)
 
@@ -19,7 +19,7 @@
 #3. Filter data by condition to analyse each condition separately
 #4. Delete outliers detected with cooks distance, an outlier is defined
   #as more than 3 times more influential than an average point
-#5. Perfom multilevel regression analysis as the assumption of independence 
+#5. Perform multilevel regression analysis as the assumption of independence 
   #of residuals is violated. Therefor procedure according to Andy Field (2012)
   #for each condition separately. Start  to build up the models according
   #model complexity with an intercept only model, one predictor model, random
@@ -240,8 +240,8 @@ for (i in 1:24) {
   i_plot <- ggplot(individual_data, aes(x = ball_position, y = horizontal_difference)) +
     geom_point() +  # This adds the scatter points
     labs(title = title,
-         x = "fast condition for one subject",
-         y = "Deviation From Sweet Spot") +
+         x = "ball position (cm)",
+         y = "estimation error [horizontal ball position - racket center] (cm)") +
     theme_minimal() +
     geom_segment(aes(x = 40,y = coef(model5_fast)[i,1]+ 40*coef(model5_fast)[i,2], xend = 60, yend = coef(model5_fast)[i,1]+ 60*coef(model5_fast)[i,2]), size = 2, alpha = 0.5,  linetype = "solid") +
     geom_segment(aes(x = 80,y = coef(model5_fast)[i,1]+ 80*coef(model5_fast)[i,2]+coef(model5_fast)[i,3], xend = 100, yend = coef(model5_fast)[i,1]+ 100*coef(model5_fast)[i,2]+coef(model5_fast)[i,3]), size = 2, alpha = 0.5,  linetype = "solid") +
@@ -357,8 +357,8 @@ for (i in 1:24) {
   i_plot <- ggplot(individual_data, aes(x = ball_position, y = horizontal_difference)) +
     geom_point() +  # This adds the scatter points
     labs(title = title,
-         x = "moderate condition for one subject",
-         y = "Deviation From Sweet Spot") +
+         x = "ball position (cm)",
+         y = "estimation error [horizontal ball position - racket center] (cm)") +
     theme_minimal() +
     geom_segment(aes(x = 40,y = coef(model5_moderate)[i,1]+ 40*coef(model5_moderate)[i,2], xend = 60, yend = coef(model5_moderate)[i,1]+ 60*coef(model5_moderate)[i,2]), size = 2, alpha = 0.5,  linetype = "solid") +
     geom_segment(aes(x = 80,y = coef(model5_moderate)[i,1]+ 80*coef(model5_moderate)[i,2]+coef(model5_moderate)[i,3], xend = 100, yend = coef(model5_moderate)[i,1]+ 100*coef(model5_moderate)[i,2]+coef(model5_moderate)[i,3]), size = 2, alpha = 0.5,  linetype = "solid") +
@@ -476,8 +476,8 @@ for (i in 1:24) {
   i_plot <- ggplot(individual_data, aes(x = ball_position, y = horizontal_difference)) +
     geom_point() +  # This adds the scatter points
     labs(title = title,
-         x = "slow condition for one subject",
-         y = "Deviation From Sweet Spot") +
+         x = "ball position (cm)",
+         y = "estimation error [horizontal ball position - racket center] (cm)") +
     theme_minimal() +
     geom_segment(aes(x = 40,y = coef(model5_slow)[i,1]+ 40*coef(model5_slow)[i,2], xend = 60, yend = coef(model5_slow)[i,1]+ 60*coef(model5_slow)[i,2]), size = 2, alpha = 0.5,  linetype = "solid") +
     geom_segment(aes(x = 80,y = coef(model5_slow)[i,1]+ 80*coef(model5_slow)[i,2]+coef(model5_slow)[i,3], xend = 100, yend = coef(model5_slow)[i,1]+ 100*coef(model5_slow)[i,2]+coef(model5_slow)[i,3]), size = 2, alpha = 0.5,  linetype = "solid") +
@@ -552,7 +552,7 @@ p <- ggplot() +
   geom_errorbar(data = bins_with_stats_all_subjects_slow, aes(x = bin, ymin = lower, ymax = upper), color = "green", width = 0.2) +
   labs(title = "all subjects all condition",
        x = "ball position",
-       y = "Mean Deviation From Sweet Spot (cm)") +
+       y = "estimation error [horizontal ball position - racket center] (cm)") +
   geom_segment(aes(x = 40,y = fixef(model5_fast)[1]+ 40*fixef(model5_fast)[2], xend = 60, yend = fixef(model5_fast)[1]+ 60*fixef(model5_fast)[2]), size = 2, color = "red", linetype = "solid") +
   geom_segment(aes(x = 80,y = fixef(model5_fast)[1]+ 80*fixef(model5_fast)[2]+fixef(model5_fast)[3], xend = 100, yend = fixef(model5_fast)[1]+ 100*fixef(model5_fast)[2]+fixef(model5_fast)[3]), size = 2, color = "red", linetype = "solid") +
   geom_segment(aes(x = 60,y = fixef(model5_fast)[1]+ 60*fixef(model5_fast)[2], xend = 70, yend = fixef(model5_fast)[1]+ 70*fixef(model5_fast)[2]), size = 0.5, alpha = 0.5,  color = "red", linetype = "dotted") +
@@ -587,7 +587,7 @@ p <- ggplot() +
   geom_errorbar(data = bins_with_stats_all_subjects_slow, aes(x = bin, ymin = lower, ymax = upper), color = "green", width = 0.2) +
   labs(title = "all subjects all condition with interaction",
        x = "ball position",
-       y = "Mean Deviation From Sweet Spot (cm)") +
+       y = "estimation error [horizontal ball position - racket center] (cm)") +
   geom_segment(aes(x = 40,y = fixef(model6_slow)[1] - 30*fixef(model6_slow)[2], xend = 60, yend = fixef(model6_slow)[1]- 10*fixef(model6_slow)[2]), size = 1.5, color = "green", linetype = "solid") +
   geom_segment(aes(x = 60,y = fixef(model6_slow)[1] - 10*fixef(model6_slow)[2], xend = 70, yend = fixef(model6_slow)[1]+ 0*fixef(model6_slow)[2]), size = 0.5, color = "green", linetype = "dotted") +
   geom_segment(aes(x = 80,y = fixef(model6_slow)[1]+ 10*fixef(model6_slow)[2]+fixef(model6_slow)[3]+10*fixef(model6_slow)[4], xend = 100, yend = fixef(model6_slow)[1]+ 30*fixef(model6_slow)[2]+fixef(model6_slow)[3]+30*fixef(model6_slow)[4]), size = 1.5, color = "green", linetype = "solid") +
