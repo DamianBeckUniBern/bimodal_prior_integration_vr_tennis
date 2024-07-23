@@ -1,10 +1,40 @@
 #---------------------------------------------------------------
-# VR-Tennis multilevel regression analysis of the shifts of the sweet spot
-
 # Author: Damian Beck
 # Date: June 2024
 # Based on r version 4.3.2
 #---------------------------------------------------------------
+##bimodal prior integration in VR-Tennis 
+##according to Bayesian decision theory
+
+#Multilevel regression analysis (or synonym "linear mixed models") 
+#of the horizontal differences between the ball and 
+#the racket centre (variable = “hoiziontal_difference”)
+#as a function of ball position (variable = “ball_position”) 
+#and uncertainty-condition (variable = “condition” slow/moderate/fast)
+
+#The script is structured as follows:
+#1. Load necessary packages and functions
+#2. load data and make dummy variable for 
+#left and right side of bimodal distribution
+#3. Filter data by condition to analyse each condition separately
+#4. Delete outliers detected with cooks distance, an outlier is defined
+#as more than 3 times more influential than an average point
+#5. Perfom multilevel regression analysis as the assumption of independence 
+#of residuals is violated. Therefor procedure according to Andy Field (2012)
+#for each condition separately. Start  to build up the models according
+#model complexity with an intercept only model, one predictor model, random
+#intercept model, random slope model, additional dummy predictor left_right,
+#interaction predictor of ball_position*dummy predictor left_right
+#6. Check for collinearity, normality of residuals and homoscedasticity
+#7. Model comparison with anova (according to the parsimony principle)
+#8. Calculate a robust model because of potential small violations of normality
+#assumptions of residuals
+#9. Plot for all participants "estimation error" as a function of "ball_position"
+#10. Create bins and calculate mean and 95% CI across all subjects for each condition
+#11. Plot the mean and 95% confidence intervals for each bin across all subjects
+#for each condition together in one single plot
+#12. Do the same plots as in 11. considering the interaction effect of 
+#ball_position and dummy predictor left_right
 
 # Packages ----
 #---------------------------------------------------------------
@@ -12,27 +42,18 @@
 #install.packages("car", dependencies = TRUE)
 #install.packages("ggplot2", dependencies = TRUE)
 #install.packages("nlme", dependencies = TRUE)
-#install.packages("reshape", dependencies = TRUE)
 #install.packages("tidyverse", dependencies = TRUE)
 #install.packages("sjPlot", dependencies = TRUE)
 #install.packages("broom.mixed", dependencies = TRUE)
-#install.packages("modi", dependencies = TRUE)
-#install.packages("robustlmm", dependencies = TRUE)
-#install.packages("olsrr")
+#install.packages("psych", dependencies = TRUE)
+#install.packages("MASS", dependencies = TRUE)
 
 library(car)
 library(ggplot2)
 library(nlme)
-library(reshape)
-library(lme4)
 library(tidyverse)
 library(sjPlot)
 library(broom.mixed)
-library(modi)
-library(robustlmm)
-library(readxl)
-library(dplyr)
-library(olsrr)
 library(psych)
 library(MASS)
 
@@ -97,7 +118,7 @@ subjects <- unique(data_all$subject)
 #---------------------------------------------------------------
 #Outlier detection with cooks distance 
 #if more than 3 times more influential than an average point
-model_fast <- lm(horizontalDifference ~ ball_position+ left_right, data = fast)
+model_fast <- lm(horizontal_difference ~ ball_position+ left_right, data = fast)
 summary(model_fast)
 tab_model(model_fast)
 plot(model_fast,4)
@@ -112,7 +133,7 @@ summary(fast)
 #Field, A. P., Miles, J., & Field, Z. (2012). Discovering statistics using 
 #R: And sex and drugs and rock ‘n’ roll. London: Sage.
 #intercept only model
-model1_fast <- nlme::gls(horizontalDifference ~ 1,
+model1_fast <- nlme::gls(horizontal_difference ~ 1,
                          data = fast,
                          method = "ML",
                          na.action = na.exclude)
@@ -120,7 +141,7 @@ tab_model(model1_fast)
 
 #One predictor model
 #correlation = corAR1(form = ~1 |index) for growth models (Field, 2012)
-model2_fast <- nlme::gls(horizontalDifference ~ ball_position, 
+model2_fast <- nlme::gls(horizontal_difference ~ ball_position, 
                          data = fast,
                          correlation = corAR1(form = ~ 1 | subject),
                          method = "ML",
@@ -129,7 +150,7 @@ tab_model(model2_fast)
 summary(model2_fast)
 
 #random intercept model
-model3_fast <- nlme::lme(horizontalDifference ~ ball_position, 
+model3_fast <- nlme::lme(horizontal_difference ~ ball_position, 
                          data = fast,
                          correlation = corAR1(form = ~ 1 | subject),
                          random = ~ 1|subject,
@@ -139,7 +160,7 @@ tab_model(model3_fast)
 summary(model3_fast)
 
 #random slope model
-model4_fast <- nlme::lme(horizontalDifference ~ ball_position, 
+model4_fast <- nlme::lme(horizontal_difference ~ ball_position, 
                          data = fast,
                          correlation = corAR1(form = ~ 1 | subject),
                          random = ~ ball_position|subject,
@@ -149,7 +170,7 @@ tab_model(model4_fast)
 summary(model4_fast)
 
 #additional dummy predictor left_right
-model5_fast <- nlme::lme(horizontalDifference ~ ball_position + left_right, 
+model5_fast <- nlme::lme(horizontal_difference ~ ball_position + left_right, 
                          data = fast,
                          correlation = corAR1(form = ~ 1 | subject),
                          random = ~ ball_position|subject,
@@ -158,7 +179,7 @@ model5_fast <- nlme::lme(horizontalDifference ~ ball_position + left_right,
 tab_model(model5_fast)
 summary(model5_fast)
 
-#check colinearity
+#check collinearity
 #calculate correlation between ball_position and left_right))
 cor.test((fast$ball_position), (fast$left_right)) 
 #high correlation not necessarily a problem, check the variance inflation factor vif
@@ -173,7 +194,7 @@ hist(residuals(model5_fast)) #residuals are visually normally distributed
 shapiro.test(residuals(model5_fast)) #significant -> often significant with large sample sizes
 
 #Check for interaction effect and if there interaction influences the gap
-model6_fast <- nlme::lme(horizontalDifference ~ I(ball_position-70) + left_right +I(ball_position-70)*left_right, 
+model6_fast <- nlme::lme(horizontal_difference ~ I(ball_position-70) + left_right +I(ball_position-70)*left_right, 
                          data = fast,
                          correlation = corAR1(form = ~ 1 | subject),
                          random = ~ ball_position|subject,
@@ -182,7 +203,7 @@ model6_fast <- nlme::lme(horizontalDifference ~ I(ball_position-70) + left_right
 tab_model(model6_fast)
 summary(model6_fast)
 
-#check colinearity
+#check collinearity
 #calculate correlation between ball_position and left_right))
 cor.test((fast$ball_position), (fast$left_right)) 
 #high correlation not necessarily a problem, check the variance inflation factor vif
@@ -202,7 +223,7 @@ anova(model1_fast, model2_fast, model3_fast, model4_fast, model5_fast, model6_fa
 
 #calculate a robust model because of potential small violations of normality assumptions of residuals
 #same interpretation as for the non robust model
-robust_model_left_right <- rlm(horizontalDifference ~ ball_position + left_right, data = fast)
+robust_model_left_right <- rlm(horizontal_difference ~ ball_position + left_right, data = fast)
 summary(robust_model_left_right)
 tab_model(robust_model_left_right)
 
@@ -210,7 +231,7 @@ tab_model(robust_model_left_right)
 for (i in 1:24) {
   individual_data <- filter(fast, subject==levels(as.factor(data_all$subject))[i])
   title <- paste("subject", i, "in the fast condition")
-  i_plot <- ggplot(individual_data, aes(x = ball_position, y = horizontalDifference)) +
+  i_plot <- ggplot(individual_data, aes(x = ball_position, y = horizontal_difference)) +
     geom_point() +  # This adds the scatter points
     labs(title = title,
          x = "fast condition for one subject",
@@ -229,7 +250,7 @@ for (i in 1:24) {
 #---------------------------------------------------------------
 #Outlier detection with cooks distance 
 #if more than 3 times more influential than an average point
-model_moderate <- lm(horizontalDifference ~ ball_position+ left_right, data = moderate)
+model_moderate <- lm(horizontal_difference ~ ball_position+ left_right, data = moderate)
 summary(model_moderate)
 tab_model(model_moderate)
 plot(model_moderate,4)
@@ -244,7 +265,7 @@ summary(moderate)
 #Field, A. P., Miles, J., & Field, Z. (2012). Discovering statistics using 
 #R: And sex and drugs and rock ‘n’ roll. London: Sage.
 #intercept only model
-model1_moderate <- nlme::gls(horizontalDifference ~ 1,
+model1_moderate <- nlme::gls(horizontal_difference ~ 1,
                              data = moderate,
                              method = "ML",
                              na.action = na.exclude)
@@ -252,7 +273,7 @@ tab_model(model1_moderate)
 
 #One predictor model
 #correlation = corAR1(form = ~1 |index) for growth models (Field, 2012)
-model2_moderate <- nlme::gls(horizontalDifference ~ ball_position, 
+model2_moderate <- nlme::gls(horizontal_difference ~ ball_position, 
                              data = moderate,
                              correlation = corAR1(form = ~ 1 | subject),
                              method = "ML",
@@ -261,7 +282,7 @@ tab_model(model2_moderate)
 summary(model2_moderate)
 
 #random intercept model
-model3_moderate <- nlme::lme(horizontalDifference ~ ball_position, 
+model3_moderate <- nlme::lme(horizontal_difference ~ ball_position, 
                              data = moderate,
                              correlation = corAR1(form = ~ 1 | subject),
                              random = ~ 1|subject,
@@ -271,7 +292,7 @@ tab_model(model3_moderate)
 summary(model3_moderate)
 
 #random slope model
-model4_moderate <- nlme::lme(horizontalDifference ~ ball_position, 
+model4_moderate <- nlme::lme(horizontal_difference ~ ball_position, 
                              data = moderate,
                              correlation = corAR1(form = ~ 1 | subject),
                              random = ~ ball_position|subject,
@@ -281,7 +302,7 @@ tab_model(model4_moderate)
 summary(model4_moderate)
 
 #additional dummy predictor left_right
-model5_moderate <- nlme::lme(horizontalDifference ~ ball_position + left_right, 
+model5_moderate <- nlme::lme(horizontal_difference ~ ball_position + left_right, 
                              data = moderate,
                              correlation = corAR1(form = ~ 1 | subject),
                              random = ~ ball_position|subject,
@@ -290,7 +311,7 @@ model5_moderate <- nlme::lme(horizontalDifference ~ ball_position + left_right,
 tab_model(model5_moderate)
 summary(model5_moderate)
 
-#check colinearity
+#check collinearity
 #calculate correlation between ball_position and left_right))
 cor.test((moderate$ball_position), (moderate$left_right)) 
 #high correlation not necessarily a problem, check the variance inflation factor vif
@@ -305,7 +326,7 @@ hist(residuals(model5_moderate)) #residuals are visually normally distributed
 shapiro.test(residuals(model5_moderate)) #significant -> often significant with large sample sizes
 
 #Check for interaction effect and if there interaction influences the gap
-model6_moderate <- nlme::lme(horizontalDifference ~ I(ball_position-70) + left_right +I(ball_position-70)*left_right, 
+model6_moderate <- nlme::lme(horizontal_difference ~ I(ball_position-70) + left_right +I(ball_position-70)*left_right, 
                              data = moderate,
                              correlation = corAR1(form = ~ 1 | subject),
                              random = ~ ball_position|subject,
@@ -319,7 +340,7 @@ anova(model1_moderate, model2_moderate, model3_moderate, model4_moderate, model5
 
 #calculate a robust model because of potential small violations of normality assumptions of residuals
 #same interpretation as for the non robust model
-robust_model_left_right <- rlm(horizontalDifference ~ ball_position + left_right, data = moderate)
+robust_model_left_right <- rlm(horizontal_difference ~ ball_position + left_right, data = moderate)
 summary(robust_model_left_right)
 tab_model(robust_model_left_right)
 
@@ -327,7 +348,7 @@ tab_model(robust_model_left_right)
 for (i in 1:24) {
   individual_data <- filter(moderate, subject==levels(as.factor(data_all$subject))[i])
   title <- paste("subject", i, "in the moderate condition")
-  i_plot <- ggplot(individual_data, aes(x = ball_position, y = horizontalDifference)) +
+  i_plot <- ggplot(individual_data, aes(x = ball_position, y = horizontal_difference)) +
     geom_point() +  # This adds the scatter points
     labs(title = title,
          x = "moderate condition for one subject",
@@ -348,7 +369,7 @@ for (i in 1:24) {
 #---------------------------------------------------------------
 #Outlier detection with cooks distance 
 #if more than 3 times more influential than an average point
-model_slow <- lm(horizontalDifference ~ ball_position+ left_right, data = slow)
+model_slow <- lm(horizontal_difference ~ ball_position+ left_right, data = slow)
 summary(model_slow)
 tab_model(model_slow)
 plot(model_slow,4)
@@ -363,7 +384,7 @@ summary(slow)
 #Field, A. P., Miles, J., & Field, Z. (2012). Discovering statistics using 
 #R: And sex and drugs and rock ‘n’ roll. London: Sage.
 #intercept only model
-model1_slow <- nlme::gls(horizontalDifference ~ 1,
+model1_slow <- nlme::gls(horizontal_difference ~ 1,
                          data = slow,
                          method = "ML",
                          na.action = na.exclude)
@@ -371,7 +392,7 @@ tab_model(model1_slow)
 
 #correlation = corAR1(form = ~1 |index) for growth models (Field, 2012)
 #One predictor model
-model2_slow <- nlme::gls(horizontalDifference ~ ball_position, 
+model2_slow <- nlme::gls(horizontal_difference ~ ball_position, 
                          data = slow,
                          correlation = corAR1(form = ~ 1 | subject),
                          method = "ML",
@@ -380,7 +401,7 @@ tab_model(model2_slow)
 summary(model2_slow)
 
 #random intercept model
-model3_slow <- nlme::lme(horizontalDifference ~ ball_position, 
+model3_slow <- nlme::lme(horizontal_difference ~ ball_position, 
                          data = slow,
                          correlation = corAR1(form = ~ 1 | subject),
                          random = ~ 1|subject,
@@ -390,7 +411,7 @@ tab_model(model3_slow)
 summary(model3_slow)
 
 #random slope model
-model4_slow <- nlme::lme(horizontalDifference ~ ball_position, 
+model4_slow <- nlme::lme(horizontal_difference ~ ball_position, 
                          data = slow,
                          correlation = corAR1(form = ~ 1 | subject),
                          random = ~ ball_position|subject,
@@ -400,7 +421,7 @@ tab_model(model4_slow)
 summary(model4_slow)
 
 #additional dummy predictor left_right
-model5_slow <- nlme::lme(horizontalDifference ~ ball_position + left_right, 
+model5_slow <- nlme::lme(horizontal_difference ~ ball_position + left_right, 
                          data = slow,
                          correlation = corAR1(form = ~ 1 | subject),
                          random = ~ ball_position|subject,
@@ -409,7 +430,7 @@ model5_slow <- nlme::lme(horizontalDifference ~ ball_position + left_right,
 tab_model(model5_slow)
 summary(model5_slow)
 
-#check colinearity
+#check collinearity
 #calculate correlation between ball_position and left_right))
 cor.test((slow$ball_position), (slow$left_right)) 
 #high correlation not necessarily a problem, check the variance inflation factor vif
@@ -424,7 +445,7 @@ hist(residuals(model5_slow)) #residuals are visually normally distributed
 shapiro.test(residuals(model5_slow)) #significant -> often significant with large sample sizes
 
 #Check for interaction effect and if there interaction influences the gap
-model6_slow <- nlme::lme(horizontalDifference ~ I(ball_position-70) + left_right +I(ball_position-70)*left_right, 
+model6_slow <- nlme::lme(horizontal_difference ~ I(ball_position-70) + left_right +I(ball_position-70)*left_right, 
                          data = slow,
                          correlation = corAR1(form = ~ 1 | subject),
                          random = ~ ball_position|subject,
@@ -438,7 +459,7 @@ anova(model1_slow, model2_slow, model3_slow, model4_slow, model5_slow, model6_sl
 
 #calculate a robust model because of potential small violations of normality assumptions of residuals
 #robust model left_right not signicificant with less effect
-robust_model_left_right <- rlm(horizontalDifference ~ ball_position + left_right, data = slow)
+robust_model_left_right <- rlm(horizontal_difference ~ ball_position + left_right, data = slow)
 summary(robust_model_left_right)
 tab_model(robust_model_left_right)
 
@@ -446,7 +467,7 @@ tab_model(robust_model_left_right)
 for (i in 1:24) {
   individual_data <- filter(slow, subject==levels(as.factor(data_all$subject))[i])
   title <- paste("subject", i, "in the slow condition")
-  i_plot <- ggplot(individual_data, aes(x = ball_position, y = horizontalDifference)) +
+  i_plot <- ggplot(individual_data, aes(x = ball_position, y = horizontal_difference)) +
     geom_point() +  # This adds the scatter points
     labs(title = title,
          x = "slow condition for one subject",
@@ -484,8 +505,8 @@ create_bins_with_stats_all_subjects <- function(data) {
     bin_data <- data %>% filter(ball_position >= bin_range[1] & ball_position < bin_range[2])
     
     if (nrow(bin_data) > 0) {
-      bin_mean <- mean(bin_data$horizontalDifference, na.rm = TRUE)
-      bin_se <- sd(bin_data$horizontalDifference, na.rm = TRUE) / sqrt(nrow(bin_data))
+      bin_mean <- mean(bin_data$horizontal_difference, na.rm = TRUE)
+      bin_se <- sd(bin_data$horizontal_difference, na.rm = TRUE) / sqrt(nrow(bin_data))
       bin_ci <- qt(0.975, df = nrow(bin_data) - 1) * bin_se
       
       if (j < 11) {

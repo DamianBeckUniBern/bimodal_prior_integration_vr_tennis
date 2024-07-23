@@ -1,17 +1,24 @@
 import csv
 import pandas as pd
 import numpy as np
+import os
 
 # clean raw data for day 1, 2, and 3
 for day_number in range(1, 4):
     # Specify the path to the raw data files
     #there were two different files for each day, participants 0-15 (1/2) and 16-31 (2/2)
-    day_1_2 = f'../raw_data/vr_tennis_fs24_day{day_number}_1_2/combined_events.csv'
-    day_2_2 = f'../raw_data/vr_tennis_fs24_day{day_number}_2_2/combined_events.csv'
+    # path of the current file
+    file_path = __file__
+    current_folder = os.path.dirname(file_path)
+    parent_folder = os.path.abspath(os.path.join(current_folder, '..'))
+    day_1_2 = f'raw_data\\vr_tennis_fs24_day{day_number}_1_2\\combined_events.csv'
+    day_2_2 = f'raw_data\\vr_tennis_fs24_day{day_number}_2_2\\combined_events.csv'
+    day_1_2_path = os.path.join(parent_folder,day_1_2)
+    day_2_2_path = os.path.join(parent_folder,day_2_2)
 
     # Read the CSV file and save it as a data frame
-    df1 = pd.read_csv(day_1_2)
-    df2 = pd.read_csv(day_2_2)
+    df1 = pd.read_csv(day_1_2_path)
+    df2 = pd.read_csv(day_2_2_path)
 
     # Drop the rows that you don't need, it is always 3 times the same data in the raw data
     df1 = df1.drop_duplicates(subset='trial', keep='last')
@@ -35,8 +42,9 @@ for day_number in range(1, 4):
     df = pd.concat([df1, df2]) 
 
     # Read in the excel protocol file of the experiment
-    protocol_file = f'../experimental_protocols/vr_tennis_exp_fs24_protocol_day{day_number}.xlsx'
-    protocol_df = pd.read_excel(protocol_file, sheet_name='experiment')
+    protocol_file = f'experimental_protocols\\vr_tennis_exp_fs24_protocol_day{day_number}.xlsx'
+    protocol_file_path = os.path.join(parent_folder,protocol_file)
+    protocol_df = pd.read_excel(protocol_file_path, sheet_name='experiment')
 
     # initialize the column "ball_position" and "condition"
     df['ball_position'] = 0.0
@@ -63,7 +71,7 @@ for day_number in range(1, 4):
 
 
     # Select the desired columns from df for the output file
-    selected_columns = df[['subject', 'horizontalDifference', 'ball_position', 'trial_number', 'condition']]
+    selected_columns = df[['subject', 'horizontal_difference', 'ball_position', 'trial_number', 'condition']]
     selected_columns['subject'] = selected_columns['subject'].astype(int)
 
     #subject 19 was consequently labeled as 20 in the experiment (only on day 1)
@@ -75,4 +83,5 @@ for day_number in range(1, 4):
     selected_columns = selected_columns[selected_columns['subject'].isin(vp_list)]
 
     # Export the selected columns to a CSV file
-    selected_columns.to_csv(f'../data/output_day{day_number}.csv', index=False)
+    export_path = os.path.join(parent_folder, f'data\\output_day{day_number}.csv')
+    selected_columns.to_csv(export_path, index=False)
