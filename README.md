@@ -1,10 +1,43 @@
-### bimodal_prior_integration_vr_tennis
-##structure of the git repository. The repository contains all necessary data to do all analysis.
-1. code folder with: 
-- python script to clean the raw data and prepare the data for the statistical analysis.
-- r-skript for each day (and merged day 2 and 3) to calculate the statistics.
-2. data: here are the prepared datasets for each day for the statistical analysis.
-3. plots: here are all plots saved for each participant in each condition on each day, and the summary plots of the aggregated plots of all participants.
-4. raw_data: There are two folders with raw data for each day. For each day a folder for the participant numbers 0-15 and 16-31, but only data from 24 participants are collected (numbers: 1-12,15-19,22-28), the other participant numbers were only in reserve.
-5. Simulation: For conceptual predictions, we have calculated a Bayesian simulation according to Bayesian decision theory. Steps of Bayesian modelling (see http://www.cns.nyu.edu/malab/bayesianbook.html).
-6. The r scripts can be executed in the r-Studio project "statistical_analysis".
+# Bayesian Tennis Experiment
+
+## Can humans learn and use bimodal priors in complex sensorimotor behaviour?
+
+This repo contains data and code for the analysis. 
+
+### Folders:
+
+- **code**
+  - Python script to clean raw data and prepare data for the statistical analysis
+  - R-scripts for the multilevel regression analysis and plots
+    - Separate scripts for day 1, 2, 3, and a combined for day 2+3
+  - Execute the R scripts with the R-studio project "statistical_analysis"
+  
+- **data**
+  - Prepared data for statistical analysis
+  
+- **experimental_protocols**
+  - Files specifying the ball position (i.e., the true stimulus) and uncertainty condition (slow/moderate/fast) for every trial in the experiment
+  
+- **plots**
+  - All plots saved for each participant in each condition on each day and the summary plots of the aggregated plots of all participants
+  
+- **raw_data**
+  - Raw data after the experiment. There are two folders for each day: a folder for the participants ID 0-15 and 16-31. 24 participants in total (ID: 1-12, 15-19, 22-28). The remaining IDs served as a reserve
+  
+- **simulation**
+  - Jupyter notebook for Bayesian predictions. Reads experimental protocol and estimates participants’ response based on a Bayesian model.
+
+### Experiment in Short
+
+- Subjects (N=24) return tennis serves in VR on 3 days
+- 3 days x 480 trials = 1,440 trials
+- We control the ball locations (i.e., true stimulus) 🡪 follows a bimodal distribution
+- We manipulate uncertainty of sensory information 🡪 3 levels of ball speeds: slow, moderate, fast
+
+### Information on the Analysis (R Script)
+
+- **Main DV:** Estimation error = horizontal difference between racket centre and ball
+  - In R script = “horizontal_difference”
+- **Multilevel regression analysis**
+  - We quantify the bimodal-prior effect by a “jump” from between the left and right sides of the distribution.
+  - In R-script = “left_right” term
