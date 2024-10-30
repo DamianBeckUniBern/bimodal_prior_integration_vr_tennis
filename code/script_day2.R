@@ -23,8 +23,7 @@
 #of residuals is violated. Therefor procedure according to Andy Field (2012)
 #for each condition separately. Start  to build up the models according
 #model complexity with an intercept only model, one predictor model, random
-#intercept model, random slope model, additional dummy predictor left_right,
-#interaction predictor of ball_position*dummy predictor left_right
+#intercept model, random slope model, additional dummy predictor left_right
 #6. Check for collinearity, normality of residuals and homoscedasticity
 #7. Model comparison with anova (according to the parsimony principle)
 #8. Calculate a robust model because of potential small violations of normality
@@ -33,8 +32,6 @@
 #10. Create bins and calculate mean and 95% CI across all subjects for each condition
 #11. Plot the mean and 95% confidence intervals for each bin across all subjects
 #for each condition together in one single plot
-#12. Do the same plots as in 11. considering the interaction effect of 
-#ball_position and dummy predictor left_right
 
 # Packages ----
 #---------------------------------------------------------------
@@ -191,35 +188,11 @@ plot(residuals(model5_fast))
 qqnorm(residuals(model5_fast))
 qqline(residuals(model5_fast))
 hist(residuals(model5_fast)) #residuals are visually normally distributed
-shapiro.test(residuals(model5_fast)) #significant -> often significant with large sample sizes
-
-#Check for interaction effect and if there interaction influences the gap
-model6_fast <- nlme::lme(horizontal_difference ~ I(ball_position-70) + left_right +I(ball_position-70)*left_right, 
-                         data = fast,
-                         correlation = corAR1(form = ~ 1 | subject),
-                         random = ~ ball_position|subject,
-                         method = "ML",
-                         na.action = na.exclude)
-tab_model(model6_fast)
-summary(model6_fast)
-
-#check collinearity
-#calculate correlation between ball_position and left_right))
-cor.test((fast$ball_position), (fast$left_right)) 
-#high correlation not necessarily a problem, check the variance inflation factor vif
-car::vif(model6_fast)
-vif.lme(model6_fast) #according to the vif, there is only little variance inflation
-
-#check for normality of residuals
-plot(residuals(model6_fast))
-qqnorm(residuals(model6_fast))
-qqline(residuals(model6_fast))
-hist(residuals(model6_fast)) #residuals are visually normally distributed
-shapiro.test(residuals(model6_fast)) #significant -> often significant with large sample sizes
-
+#simple size to large for shapiro test
+#shapiro.test(residuals(model5_fast)) 
 
 #Model comparison
-anova(model1_fast, model2_fast, model3_fast, model4_fast, model5_fast, model6_fast)
+anova(model1_fast, model2_fast, model3_fast, model4_fast, model5_fast)
 
 #calculate a robust model because of potential small violations of normality assumptions of residuals
 #same interpretation as for the non robust model
@@ -234,7 +207,7 @@ for (i in 1:24) {
   i_plot <- ggplot(individual_data, aes(x = ball_position, y = horizontal_difference)) +
     geom_point() +  # This adds the scatter points
     labs(title = title,
-         x = "ball position (cm)",
+         x = "ball positions (cm)",
          y = "estimation error [horizontal ball position - racket center] (cm)") +
     theme_minimal() +
     geom_segment(aes(x = 40,y = coef(model5_fast)[i,1]+ 40*coef(model5_fast)[i,2], xend = 60, yend = coef(model5_fast)[i,1]+ 60*coef(model5_fast)[i,2]), size = 2, alpha = 0.5,  linetype = "solid") +
@@ -323,20 +296,11 @@ plot(residuals(model5_moderate))
 qqnorm(residuals(model5_moderate))
 qqline(residuals(model5_moderate))
 hist(residuals(model5_moderate)) #residuals are visually normally distributed
-shapiro.test(residuals(model5_moderate)) #significant -> often significant with large sample sizes
-
-#Check for interaction effect and if there interaction influences the gap
-model6_moderate <- nlme::lme(horizontal_difference ~ I(ball_position-70) + left_right +I(ball_position-70)*left_right, 
-                             data = moderate,
-                             correlation = corAR1(form = ~ 1 | subject),
-                             random = ~ ball_position|subject,
-                             method = "ML",
-                             na.action = na.exclude)
-tab_model(model6_moderate)
-summary(model6_moderate)
+#simple size to large for shapiro test
+#shapiro.test(residuals(model5_moderate)) 
 
 #Model comparison
-anova(model1_moderate, model2_moderate, model3_moderate, model4_moderate, model5_moderate, model6_moderate)
+anova(model1_moderate, model2_moderate, model3_moderate, model4_moderate, model5_moderate)
 
 #calculate a robust model because of potential small violations of normality assumptions of residuals
 #same interpretation as for the non robust model
@@ -351,7 +315,7 @@ for (i in 1:24) {
   i_plot <- ggplot(individual_data, aes(x = ball_position, y = horizontal_difference)) +
     geom_point() +  # This adds the scatter points
     labs(title = title,
-         x = "ball position (cm)",
+         x = "ball positions (cm)",
          y = "estimation error [horizontal ball position - racket center] (cm)") +
     theme_minimal() +
     geom_segment(aes(x = 40,y = coef(model5_moderate)[i,1]+ 40*coef(model5_moderate)[i,2], xend = 60, yend = coef(model5_moderate)[i,1]+ 60*coef(model5_moderate)[i,2]), size = 2, alpha = 0.5,  linetype = "solid") +
@@ -442,20 +406,12 @@ plot(residuals(model5_slow))
 qqnorm(residuals(model5_slow))
 qqline(residuals(model5_slow))
 hist(residuals(model5_slow)) #residuals are visually normally distributed
-shapiro.test(residuals(model5_slow)) #significant -> often significant with large sample sizes
+#simple size to large for shapiro test
+#shapiro.test(residuals(model5_slow)) 
 
-#Check for interaction effect and if there interaction influences the gap
-model6_slow <- nlme::lme(horizontal_difference ~ I(ball_position-70) + left_right +I(ball_position-70)*left_right, 
-                         data = slow,
-                         correlation = corAR1(form = ~ 1 | subject),
-                         random = ~ ball_position|subject,
-                         method = "ML",
-                         na.action = na.exclude)
-tab_model(model6_slow)
-summary(model6_slow)
 
 #Model comparison
-anova(model1_slow, model2_slow, model3_slow, model4_slow, model5_slow, model6_slow)
+anova(model1_slow, model2_slow, model3_slow, model4_slow, model5_slow)
 
 #calculate a robust model because of potential small violations of normality assumptions of residuals
 #robust model left_right not signicificant with less effect
@@ -470,7 +426,7 @@ for (i in 1:24) {
   i_plot <- ggplot(individual_data, aes(x = ball_position, y = horizontal_difference)) +
     geom_point() +  # This adds the scatter points
     labs(title = title,
-         x = "ball position (cm)",
+         x = "ball positions (cm)",
          y = "estimation error [horizontal ball position - racket center] (cm)") +
     theme_minimal() +
     geom_segment(aes(x = 40,y = coef(model5_slow)[i,1]+ 40*coef(model5_slow)[i,2], xend = 60, yend = coef(model5_slow)[i,1]+ 60*coef(model5_slow)[i,2]), size = 2, alpha = 0.5,  linetype = "solid") +
@@ -538,15 +494,19 @@ bins_with_stats_all_subjects_slow <- create_bins_with_stats_all_subjects(slow)
 # Plot the mean and 95% confidence intervals for each bin across all subjects
 #No interaction effect
 p <- ggplot() +
-  geom_point(data = bins_with_stats_all_subjects_fast, aes(x = bin, y = mean), color = "red") +
-  geom_errorbar(data = bins_with_stats_all_subjects_fast, aes(x = bin, ymin = lower, ymax = upper), color = "red", width = 0.2) +
-  geom_point(data = bins_with_stats_all_subjects_moderate, aes(x = bin, y = mean), color = "blue") +
-  geom_errorbar(data = bins_with_stats_all_subjects_moderate,aes(x = bin, ymin = lower, ymax = upper), color = "blue", width = 0.2) +
-  geom_point(data = bins_with_stats_all_subjects_slow, aes(x = bin, y = mean), color = "green") +
-  geom_errorbar(data = bins_with_stats_all_subjects_slow, aes(x = bin, ymin = lower, ymax = upper), color = "green", width = 0.2) +
-  labs(title = "all subjects all condition",
-       x = "ball position (cm)",
-       y = "estimation error [horizontal ball position - racket center] (cm)") +
+  # Fast data points and error bars
+  geom_point(data = bins_with_stats_all_subjects_fast, aes(x = bin, y = mean, color = "Fast")) +
+  geom_errorbar(data = bins_with_stats_all_subjects_fast, aes(x = bin, ymin = lower, ymax = upper, color = "Fast"), width = 0.2) +
+  
+  # Moderate data points and error bars
+  geom_point(data = bins_with_stats_all_subjects_moderate, aes(x = bin, y = mean, color = "Moderate")) +
+  geom_errorbar(data = bins_with_stats_all_subjects_moderate, aes(x = bin, ymin = lower, ymax = upper, color = "Moderate"), width = 0.2) +
+  
+  # Slow data points and error bars
+  geom_point(data = bins_with_stats_all_subjects_slow, aes(x = bin, y = mean, color = "Slow")) +
+  geom_errorbar(data = bins_with_stats_all_subjects_slow, aes(x = bin, ymin = lower, ymax = upper, color = "Slow"), width = 0.2) +
+  
+  # Add segments for fast
   geom_segment(aes(x = 40,y = fixef(model5_fast)[1]+ 40*fixef(model5_fast)[2], xend = 60, yend = fixef(model5_fast)[1]+ 60*fixef(model5_fast)[2]), size = 2, color = "red", linetype = "solid") +
   geom_segment(aes(x = 80,y = fixef(model5_fast)[1]+ 80*fixef(model5_fast)[2]+fixef(model5_fast)[3], xend = 100, yend = fixef(model5_fast)[1]+ 100*fixef(model5_fast)[2]+fixef(model5_fast)[3]), size = 2, color = "red", linetype = "solid") +
   geom_segment(aes(x = 60,y = fixef(model5_fast)[1]+ 60*fixef(model5_fast)[2], xend = 70, yend = fixef(model5_fast)[1]+ 70*fixef(model5_fast)[2]), size = 0.5, alpha = 0.5,  color = "red", linetype = "dotted") +
@@ -561,45 +521,36 @@ p <- ggplot() +
   geom_segment(aes(x = 80, y = fixef(model5_slow)[1] + 80 * fixef(model5_slow)[2] + fixef(model5_slow)[3], xend = 100, yend = fixef(model5_slow)[1] + 100 * fixef(model5_slow)[2] + fixef(model5_slow)[3]), size = 2, color = "green", linetype = "solid") +
   geom_segment(aes(x = 60, y = fixef(model5_slow)[1] + 60 * fixef(model5_slow)[2], xend = 70, yend = fixef(model5_slow)[1] + 70 * fixef(model5_slow)[2]), size = 0.5, alpha = 0.5, color = "green", linetype = "dotted") +
   geom_segment(aes(x = 70, y = fixef(model5_slow)[1] + 70 * fixef(model5_slow)[2] + fixef(model5_slow)[3], xend = 80, yend = fixef(model5_slow)[1] + 80 * fixef(model5_slow)[2] + fixef(model5_slow)[3]), size = 0.5, color = "green", linetype = "dotted") +
-  theme_minimal()
-
-
-# Save the plot
-ggsave(filename = "plots/all_subjects_day2.png", plot = p, width = 8, height = 6)
-
-# Print the plot
-print(p)
-
-
-#Interaction effect
-p <- ggplot() +
-  geom_point(data = bins_with_stats_all_subjects_fast, aes(x = bin, y = mean), color = "red") +
-  geom_errorbar(data = bins_with_stats_all_subjects_fast, aes(x = bin, ymin = lower, ymax = upper), color = "red", width = 0.2) +
-  geom_point(data = bins_with_stats_all_subjects_moderate, aes(x = bin, y = mean), color = "blue") +
-  geom_errorbar(data = bins_with_stats_all_subjects_moderate,aes(x = bin, ymin = lower, ymax = upper), color = "blue", width = 0.2) +
-  geom_point(data = bins_with_stats_all_subjects_slow, aes(x = bin, y = mean), color = "green") +
-  geom_errorbar(data = bins_with_stats_all_subjects_slow, aes(x = bin, ymin = lower, ymax = upper), color = "green", width = 0.2) +
-  labs(title = "all subjects all condition with interaction",
-       x = "ball position (cm)",
-       y = "estimation error [horizontal ball position - racket center] (cm)") +
-  geom_segment(aes(x = 40,y = fixef(model6_slow)[1] - 30*fixef(model6_slow)[2], xend = 60, yend = fixef(model6_slow)[1]- 10*fixef(model6_slow)[2]), size = 1.5, color = "green", linetype = "solid") +
-  geom_segment(aes(x = 60,y = fixef(model6_slow)[1] - 10*fixef(model6_slow)[2], xend = 70, yend = fixef(model6_slow)[1]+ 0*fixef(model6_slow)[2]), size = 0.5, color = "green", linetype = "dotted") +
-  geom_segment(aes(x = 80,y = fixef(model6_slow)[1]+ 10*fixef(model6_slow)[2]+fixef(model6_slow)[3]+10*fixef(model6_slow)[4], xend = 100, yend = fixef(model6_slow)[1]+ 30*fixef(model6_slow)[2]+fixef(model6_slow)[3]+30*fixef(model6_slow)[4]), size = 1.5, color = "green", linetype = "solid") +
-  geom_segment(aes(x = 70,y = fixef(model6_slow)[1]+ 0*fixef(model6_slow)[2]+fixef(model6_slow)[3]+0*fixef(model6_slow)[4], xend = 80, yend = fixef(model6_slow)[1]+ 10*fixef(model6_slow)[2]+fixef(model6_slow)[3]+10*fixef(model6_slow)[4]), size = 0.5, color = "green", linetype = "dotted") +
-  geom_segment(aes(x = 40,y = fixef(model6_moderate)[1] - 30*fixef(model6_moderate)[2], xend = 60, yend = fixef(model6_moderate)[1]- 10*fixef(model6_moderate)[2]), size = 1.5, color = "blue", linetype = "solid") +
-  geom_segment(aes(x = 60,y = fixef(model6_moderate)[1] - 10*fixef(model6_moderate)[2], xend = 70, yend = fixef(model6_moderate)[1]+ 0*fixef(model6_moderate)[2]), size = 0.5, color = "blue", linetype = "dotted") +
-  geom_segment(aes(x = 80,y = fixef(model6_moderate)[1]+ 10*fixef(model6_moderate)[2]+fixef(model6_moderate)[3]+10*fixef(model6_moderate)[4], xend = 100, yend = fixef(model6_moderate)[1]+ 30*fixef(model6_moderate)[2]+fixef(model6_moderate)[3]+30*fixef(model6_moderate)[4]), size = 1.5, color = "blue", linetype = "solid") +
-  geom_segment(aes(x = 70,y = fixef(model6_moderate)[1]+ 0*fixef(model6_moderate)[2]+fixef(model6_moderate)[3]+0*fixef(model6_moderate)[4], xend = 80, yend = fixef(model6_moderate)[1]+ 10*fixef(model6_moderate)[2]+fixef(model6_moderate)[3]+10*fixef(model6_moderate)[4]), size = 0.5, color = "blue", linetype = "dotted") +
-  geom_segment(aes(x = 40,y = fixef(model6_fast)[1] - 30*fixef(model6_fast)[2], xend = 60, yend = fixef(model6_fast)[1]- 10*fixef(model6_fast)[2]), size = 1.5, color = "red", linetype = "solid") +
-  geom_segment(aes(x = 60,y = fixef(model6_fast)[1] - 10*fixef(model6_fast)[2], xend = 70, yend = fixef(model6_fast)[1]+ 0*fixef(model6_fast)[2]), size = 0.5, color = "red", linetype = "dotted") +
-  geom_segment(aes(x = 80,y = fixef(model6_fast)[1]+ 10*fixef(model6_fast)[2]+fixef(model6_fast)[3]+10*fixef(model6_fast)[4], xend = 100, yend = fixef(model6_fast)[1]+ 30*fixef(model6_fast)[2]+fixef(model6_fast)[3]+30*fixef(model6_fast)[4]), size = 1.5, color = "red", linetype = "solid") +
-  geom_segment(aes(x = 70,y = fixef(model6_fast)[1]+ 0*fixef(model6_fast)[2]+fixef(model6_fast)[3]+0*fixef(model6_fast)[4], xend = 80, yend = fixef(model6_fast)[1]+ 10*fixef(model6_fast)[2]+fixef(model6_fast)[3]+10*fixef(model6_fast)[4]), size = 0.5, color = "red", linetype = "dotted") +
-  theme_minimal()
-
+  
+  # Color scale for legend
+  scale_color_manual(name = "", 
+                     values = c("Fast" = "red", "Moderate" = "blue", "Slow" = "green")) +
+  
+  # Labels and theme
+  labs(
+    title = "",
+    x = "Ball Position (cm)",
+    y = "Estimation Error [Horizontal Ball Position - Racket Center] (cm)"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "right",   
+    panel.grid = element_blank(),  
+    axis.line = element_line(linewidth = 1),    
+    axis.ticks = element_line(linewidth = 1),
+    text = element_text(size = 26),         
+    axis.text = element_text(size = 26, face = "plain", color = "black"),    
+    axis.title = element_text(size = 26, face = "plain", color = "black"),   
+    legend.text = element_text(size = 26, margin = margin(b = 15)),  
+    legend.title = element_text(size = 26, face = "plain", color = "black"),
+    legend.spacing.x = unit(1, "cm"),   
+    legend.key.width = unit(1.5, "cm")
+  )
+p
 
 # Save the plot
-ggsave(filename = "plots/all_subjects_interaction_day2.png", plot = p, width = 8, height = 6)
+ggsave(filename = "plots/all_subjects_day2.png", plot = p, width = 20, height = 12)
+# Save as vector graphic
+ggsave(filename = "plots/all_subjects_day2.svg", plot = p, width = 20, height = 12)
 
-# Print the plot
-print(p)
 
