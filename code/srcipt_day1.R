@@ -526,6 +526,9 @@ p <- ggplot() +
   scale_color_manual(name = "", 
                      values = c("Fast" = "red", "Moderate" = "blue", "Slow" = "green")) +
   
+  # Set y-axis limits
+  ylim(-17, 17) +  # Add this line to set y-axis range
+  
   # Labels and theme
   labs(
     title = "",

@@ -499,6 +499,7 @@ bins_with_stats_all_subjects_slow <- create_bins_with_stats_all_subjects(slow)
 # Plot the mean and 95% confidence intervals for each bin across all subjects
 #No interaction effect
 p <- ggplot() +
+
   # Fast data points and error bars
   geom_point(data = bins_with_stats_all_subjects_fast, aes(x = bin, y = mean, color = "Fast")) +
   geom_errorbar(data = bins_with_stats_all_subjects_fast, aes(x = bin, ymin = lower, ymax = upper, color = "Fast"), width = 0.2) +
@@ -531,6 +532,9 @@ p <- ggplot() +
   scale_color_manual(name = "", 
                      values = c("Fast" = "red", "Moderate" = "blue", "Slow" = "green")) +
   
+  # Set y-axis limits
+  ylim(-17, 17) +  # Add this line to set y-axis range
+    
   # Labels and theme
   labs(
     title = "",
