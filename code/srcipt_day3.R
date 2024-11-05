@@ -509,18 +509,18 @@ p <- ggplot() +
   # Add segments for fast
   geom_segment(aes(x = 40,y = fixef(model5_fast)[1]+ 40*fixef(model5_fast)[2], xend = 60, yend = fixef(model5_fast)[1]+ 60*fixef(model5_fast)[2]), size = 2, color = "red", linetype = "solid") +
   geom_segment(aes(x = 80,y = fixef(model5_fast)[1]+ 80*fixef(model5_fast)[2]+fixef(model5_fast)[3], xend = 100, yend = fixef(model5_fast)[1]+ 100*fixef(model5_fast)[2]+fixef(model5_fast)[3]), size = 2, color = "red", linetype = "solid") +
-  geom_segment(aes(x = 60,y = fixef(model5_fast)[1]+ 60*fixef(model5_fast)[2], xend = 70, yend = fixef(model5_fast)[1]+ 70*fixef(model5_fast)[2]), size = 0.5, alpha = 0.5,  color = "red", linetype = "dotted") +
-  geom_segment(aes(x = 70,y = fixef(model5_fast)[1]+ 70*fixef(model5_fast)[2]+fixef(model5_fast)[3], xend = 80, yend = fixef(model5_fast)[1]+ 80*fixef(model5_fast)[2]+fixef(model5_fast)[3]), size = 0.5, color = "red", linetype = "dotted") +
+  geom_segment(aes(x = 60,y = fixef(model5_fast)[1]+ 60*fixef(model5_fast)[2], xend = 70, yend = fixef(model5_fast)[1]+ 70*fixef(model5_fast)[2]), size = 2, alpha = 0.5,  color = "red", linetype = "dotted") +
+  geom_segment(aes(x = 70,y = fixef(model5_fast)[1]+ 70*fixef(model5_fast)[2]+fixef(model5_fast)[3], xend = 80, yend = fixef(model5_fast)[1]+ 80*fixef(model5_fast)[2]+fixef(model5_fast)[3]), size = 2, color = "red", linetype = "dotted") +
   # Add similar segments for moderate
   geom_segment(aes(x = 40, y = fixef(model5_moderate)[1] + 40 * fixef(model5_moderate)[2], xend = 60, yend = fixef(model5_moderate)[1] + 60 * fixef(model5_moderate)[2]), size = 2, color = "blue", linetype = "solid") +
   geom_segment(aes(x = 80, y = fixef(model5_moderate)[1] + 80 * fixef(model5_moderate)[2] + fixef(model5_moderate)[3], xend = 100, yend = fixef(model5_moderate)[1] + 100 * fixef(model5_moderate)[2] + fixef(model5_moderate)[3]), size = 2, color = "blue", linetype = "solid") +
-  geom_segment(aes(x = 60, y = fixef(model5_moderate)[1] + 60 * fixef(model5_moderate)[2], xend = 70, yend = fixef(model5_moderate)[1] + 70 * fixef(model5_moderate)[2]), size = 0.5, alpha = 0.5, color = "blue", linetype = "dotted") +
-  geom_segment(aes(x = 70, y = fixef(model5_moderate)[1] + 70 * fixef(model5_moderate)[2] + fixef(model5_moderate)[3], xend = 80, yend = fixef(model5_moderate)[1] + 80 * fixef(model5_moderate)[2] + fixef(model5_moderate)[3]), size = 0.5, color = "blue", linetype = "dotted") +
+  geom_segment(aes(x = 60, y = fixef(model5_moderate)[1] + 60 * fixef(model5_moderate)[2], xend = 70, yend = fixef(model5_moderate)[1] + 70 * fixef(model5_moderate)[2]), size = 2, alpha = 0.5, color = "blue", linetype = "dotted") +
+  geom_segment(aes(x = 70, y = fixef(model5_moderate)[1] + 70 * fixef(model5_moderate)[2] + fixef(model5_moderate)[3], xend = 80, yend = fixef(model5_moderate)[1] + 80 * fixef(model5_moderate)[2] + fixef(model5_moderate)[3]), size = 2, color = "blue", linetype = "dotted") +
   # Add similar segments for slow
   geom_segment(aes(x = 40, y = fixef(model5_slow)[1] + 40 * fixef(model5_slow)[2], xend = 60, yend = fixef(model5_slow)[1] + 60 * fixef(model5_slow)[2]), size = 2, color = "green", linetype = "solid") +
   geom_segment(aes(x = 80, y = fixef(model5_slow)[1] + 80 * fixef(model5_slow)[2] + fixef(model5_slow)[3], xend = 100, yend = fixef(model5_slow)[1] + 100 * fixef(model5_slow)[2] + fixef(model5_slow)[3]), size = 2, color = "green", linetype = "solid") +
-  geom_segment(aes(x = 60, y = fixef(model5_slow)[1] + 60 * fixef(model5_slow)[2], xend = 70, yend = fixef(model5_slow)[1] + 70 * fixef(model5_slow)[2]), size = 0.5, alpha = 0.5, color = "green", linetype = "dotted") +
-  geom_segment(aes(x = 70, y = fixef(model5_slow)[1] + 70 * fixef(model5_slow)[2] + fixef(model5_slow)[3], xend = 80, yend = fixef(model5_slow)[1] + 80 * fixef(model5_slow)[2] + fixef(model5_slow)[3]), size = 0.5, color = "green", linetype = "dotted") +
+  geom_segment(aes(x = 60, y = fixef(model5_slow)[1] + 60 * fixef(model5_slow)[2], xend = 70, yend = fixef(model5_slow)[1] + 70 * fixef(model5_slow)[2]), size = 2, alpha = 0.5, color = "green", linetype = "dotted") +
+  geom_segment(aes(x = 70, y = fixef(model5_slow)[1] + 70 * fixef(model5_slow)[2] + fixef(model5_slow)[3], xend = 80, yend = fixef(model5_slow)[1] + 80 * fixef(model5_slow)[2] + fixef(model5_slow)[3]), size = 2, color = "green", linetype = "dotted") +
   
   # Color scale for legend
   scale_color_manual(name = "", 

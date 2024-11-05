@@ -270,16 +270,16 @@
 <polyline points='1160.03,281.48 1163.54,281.48 ' style='stroke-width: 1.07; stroke: #00FF00; stroke-linecap: butt;' />
 <line x1='127.40' y1='666.32' x2='478.04' y2='494.72' style='stroke-width: 4.27; stroke: #FF0000; stroke-linecap: butt;' />
 <line x1='828.68' y1='417.80' x2='1179.32' y2='246.20' style='stroke-width: 4.27; stroke: #FF0000; stroke-linecap: butt;' />
-<line x1='478.04' y1='494.72' x2='653.36' y2='408.92' style='stroke-width: 1.07; stroke: #FF0000; stroke-opacity: 0.50; stroke-dasharray: 1.42,4.27; stroke-linecap: butt;' />
-<line x1='653.36' y1='503.59' x2='828.68' y2='417.80' style='stroke-width: 1.07; stroke: #FF0000; stroke-dasharray: 1.42,4.27; stroke-linecap: butt;' />
+<line x1='478.04' y1='494.72' x2='653.36' y2='408.92' style='stroke-width: 4.27; stroke: #FF0000; stroke-opacity: 0.50; stroke-dasharray: 5.69,17.07; stroke-linecap: butt;' />
+<line x1='653.36' y1='503.59' x2='828.68' y2='417.80' style='stroke-width: 4.27; stroke: #FF0000; stroke-dasharray: 5.69,17.07; stroke-linecap: butt;' />
 <line x1='127.40' y1='544.33' x2='478.04' y2='437.33' style='stroke-width: 4.27; stroke: #0000FF; stroke-linecap: butt;' />
 <line x1='828.68' y1='353.62' x2='1179.32' y2='246.62' style='stroke-width: 4.27; stroke: #0000FF; stroke-linecap: butt;' />
-<line x1='478.04' y1='437.33' x2='653.36' y2='383.84' style='stroke-width: 1.07; stroke: #0000FF; stroke-opacity: 0.50; stroke-dasharray: 1.42,4.27; stroke-linecap: butt;' />
-<line x1='653.36' y1='407.11' x2='828.68' y2='353.62' style='stroke-width: 1.07; stroke: #0000FF; stroke-dasharray: 1.42,4.27; stroke-linecap: butt;' />
+<line x1='478.04' y1='437.33' x2='653.36' y2='383.84' style='stroke-width: 4.27; stroke: #0000FF; stroke-opacity: 0.50; stroke-dasharray: 5.69,17.07; stroke-linecap: butt;' />
+<line x1='653.36' y1='407.11' x2='828.68' y2='353.62' style='stroke-width: 4.27; stroke: #0000FF; stroke-dasharray: 5.69,17.07; stroke-linecap: butt;' />
 <line x1='127.40' y1='341.07' x2='478.04' y2='313.78' style='stroke-width: 4.27; stroke: #00FF00; stroke-linecap: butt;' />
 <line x1='828.68' y1='276.30' x2='1179.32' y2='249.01' style='stroke-width: 4.27; stroke: #00FF00; stroke-linecap: butt;' />
-<line x1='478.04' y1='313.78' x2='653.36' y2='300.14' style='stroke-width: 1.07; stroke: #00FF00; stroke-opacity: 0.50; stroke-dasharray: 1.42,4.27; stroke-linecap: butt;' />
-<line x1='653.36' y1='289.95' x2='828.68' y2='276.30' style='stroke-width: 1.07; stroke: #00FF00; stroke-dasharray: 1.42,4.27; stroke-linecap: butt;' />
+<line x1='478.04' y1='313.78' x2='653.36' y2='300.14' style='stroke-width: 4.27; stroke: #00FF00; stroke-opacity: 0.50; stroke-dasharray: 5.69,17.07; stroke-linecap: butt;' />
+<line x1='653.36' y1='289.95' x2='828.68' y2='276.30' style='stroke-width: 4.27; stroke: #00FF00; stroke-dasharray: 5.69,17.07; stroke-linecap: butt;' />
 </g>
 <g clip-path='url(#cpMC4wMHwxNDQwLjAwfDAuMDB8ODY0LjAw)'>
 <polyline points='74.80,802.68 74.80,39.85 ' style='stroke-width: 2.13; stroke-linecap: butt;' />
