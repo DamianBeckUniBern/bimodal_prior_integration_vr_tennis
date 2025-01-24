@@ -16,26 +16,26 @@
 #1. Load necessary packages and functions
 #2. load data and make dummy variable for 
 #left and right side of bimodal distribution
-#3. Filter data by condition to analyse each condition separately
-#4. Delete outliers detected with cooks distance, an outlier is defined
+#3. Quantify non valid trials (no hits and backswing)
+#4. Filter data by condition to analyse each condition separately
+#5. Delete outliers detected with cooks distance, an outlier is defined
 #as more than 3 times more influential than an average point
-#5. Perform multilevel regression analysis as the assumption of independence 
+#6. Perform multilevel regression analysis as the assumption of independence 
 #of residuals is violated. Therefor procedure according to Andy Field (2012)
 #for each condition separately. Start  to build up the models according
 #model complexity with an intercept only model, one predictor model, random
 #intercept model, random slope model, additional dummy predictor left_right
-#6. Check for collinearity, normality of residuals and homoscedasticity
-#7. Model comparison with anova (according to the parsimony principle)
-#8. Calculate a robust model because of potential small violations of normality
+#7. Check for collinearity, normality of residuals and homoscedasticity
+#8. Model comparison with anova (according to the parsimony principle)
+#9. Calculate a robust model because of potential small violations of normality
 #assumptions of residuals
-#9. Plot for all participants "estimation error" as a function of "ball_position"
-#10. Create bins and calculate mean and 95% CI across all subjects for each condition
-#11. Plot the mean and 95% confidence intervals for each bin across all subjects
+#10. Plot for all participants "estimation error" as a function of "ball_position"
+#11. Create bins and calculate mean and 95% CI across all subjects for each condition
+#12. Plot the mean and 95% confidence intervals for each bin across all subjects
 #for each condition together in one single plot
 
 # Packages ----
 #---------------------------------------------------------------
-#install packages recommended by Field (2012)
 #install.packages("car", dependencies = TRUE)
 #install.packages("ggplot2", dependencies = TRUE)
 #install.packages("nlme", dependencies = TRUE)
@@ -95,15 +95,32 @@ data_all_day3 <- read.csv("data/output_day3.csv")
 
 #Merge data from day 2 and day 3
 data_all <- rbind(data_all_day2, data_all_day3)
-
 View(data_all)
 summary(data_all)
 
 #Make dummy variable for left and right side of bimodal distribution
 data_all$left_right <- ifelse(data_all$ball_position > 70, 1,0)
 
+# Non valid trials ----
+#---------------------------------------------------------------
+# overall number of non valid trials
+# 2 days * 24 subjects * 480 trials = 288 trials = 23040 trials (without warm-up)
+# No hit trials = 23040 - length(data_all)
+number_of_no_hits <- 23040 - dim(data_all)[1]
+percentage_of_no_hits <- number_of_no_hits / 23040 * 100
+percentage_of_no_hits #percentage of no hits is 9.29
+
+# exclude data for backswing true
+number_of_backswing_hits <- data_all %>% filter(backswing == "True")
+dim(number_of_backswing_hits)[1]
+percentage_of_backswing_hits <- dim(number_of_backswing_hits)[1] / 23040 * 100
+percentage_of_backswing_hits #percentage of backswing hits is 2.27%
+
 # Filter data ----
 #---------------------------------------------------------------
+# exclude data with backswing true
+data_all <- data_all %>% filter(backswing == "False")
+
 # Filter data by condition
 fast <- filter(data_all, data_all$condition == "fast")
 summary(fast)
@@ -114,6 +131,7 @@ summary(slow)
 
 #Make a list of number of subjects
 subjects <- unique(data_all$subject)
+
 
 #Analyse each condition separately
 #Fast ---- 
@@ -466,9 +484,20 @@ create_bins_with_stats_all_subjects <- function(data) {
     bin_data <- data %>% filter(ball_position >= bin_range[1] & ball_position < bin_range[2])
     
     if (nrow(bin_data) > 0) {
-      bin_mean <- mean(bin_data$horizontal_difference, na.rm = TRUE)
-      bin_se <- sd(bin_data$horizontal_difference, na.rm = TRUE) / sqrt(nrow(bin_data))
-      bin_ci <- qt(0.975, df = nrow(bin_data) - 1) * bin_se
+      #bin_mean <- mean(bin_data$horizontal_difference, na.rm = TRUE)
+      #bin_se <- sd(bin_data$horizontal_difference, na.rm = TRUE) / sqrt(nrow(bin_data))
+      #bin_ci <- qt(0.975, df = nrow(bin_data) - 1) * bin_se
+      # Fit a random intercept model
+      model <- lme(horizontal_difference ~ 1, random = ~ 1 | subject, data = bin_data, na.action = na.omit)
+      
+      # Extract the fixed effect (mean) estimate
+      bin_mean <- fixef(model)
+      
+      # Extract the standard error of the fixed effect
+      se_estimate <- summary(model)$tTable[,"Std.Error"]
+      
+      # Calculate the 95% confidence interval
+      bin_ci <- qt(0.975, df = model$fixDF$X) * se_estimate
       
       if (j < 11) {
         bin_center <- 39 + 2 * j
@@ -533,7 +562,7 @@ p <- ggplot() +
                      values = c("Fast" = "red", "Moderate" = "blue", "Slow" = "green")) +
   
   # Set y-axis limits
-  ylim(-17, 17) +  # Add this line to set y-axis range
+  ylim(-20, 20) +  # Add this line to set y-axis range
     
   # Labels and theme
   labs(
@@ -558,8 +587,133 @@ p <- ggplot() +
 p
 
 # Save the plot
-ggsave(filename = "plots/all_subjects_day2_and_day3.png", plot = p, width = 20, height = 12)
+ggsave(filename = "plots/all_subjects_day2_and_day3.png", plot = p, width = 15, height = 13)
 # Save as vector graphic
-ggsave(filename = "plots/all_subjects_day2_and_day3.svg", plot = p, width = 20, height = 12)
+ggsave(filename = "plots/all_subjects_day2_and_day3.svg", plot = p, width = 15, height = 13)
 
 
+
+
+# Define the plot with bidirectional arrows at x=70
+p <- ggplot() +
+  
+  # Fast data points and error bars
+  geom_point(data = bins_with_stats_all_subjects_fast, aes(x = bin, y = mean, color = "Fast")) +
+  geom_errorbar(data = bins_with_stats_all_subjects_fast, aes(x = bin, ymin = lower, ymax = upper, color = "Fast"), width = 0.2) +
+  
+  # Moderate data points and error bars
+  geom_point(data = bins_with_stats_all_subjects_moderate, aes(x = bin, y = mean, color = "Moderate")) +
+  geom_errorbar(data = bins_with_stats_all_subjects_moderate, aes(x = bin, ymin = lower, ymax = upper, color = "Moderate"), width = 0.2) +
+  
+  # Slow data points and error bars
+  geom_point(data = bins_with_stats_all_subjects_slow, aes(x = bin, y = mean, color = "Slow")) +
+  geom_errorbar(data = bins_with_stats_all_subjects_slow, aes(x = bin, ymin = lower, ymax = upper, color = "Slow"), width = 0.2) +
+  
+  # Add segments for fast
+  geom_segment(aes(x = 40, y = fixef(model5_fast)[1] + 40 * fixef(model5_fast)[2], xend = 60, yend = fixef(model5_fast)[1] + 60 * fixef(model5_fast)[2]), size = 2, color = "red", linetype = "solid") +
+  geom_segment(aes(x = 80, y = fixef(model5_fast)[1] + 80 * fixef(model5_fast)[2] + fixef(model5_fast)[3], xend = 100, yend = fixef(model5_fast)[1] + 100 * fixef(model5_fast)[2] + fixef(model5_fast)[3]), size = 2, color = "red", linetype = "solid") +
+  geom_segment(aes(x = 60, y = fixef(model5_fast)[1] + 60 * fixef(model5_fast)[2], xend = 70, yend = fixef(model5_fast)[1] + 70 * fixef(model5_fast)[2]), size = 2, alpha = 0.5, color = "red", linetype = "dotted") +
+  geom_segment(aes(x = 70, y = fixef(model5_fast)[1] + 70 * fixef(model5_fast)[2] + fixef(model5_fast)[3], xend = 80, yend = fixef(model5_fast)[1] + 80 * fixef(model5_fast)[2] + fixef(model5_fast)[3]), size = 2, color = "red", linetype = "dotted") +
+  
+  # Bidirectional arrow connecting fast regression lines at x=70
+  geom_segment(aes(x = 70, y = fixef(model5_fast)[1] + 70 * fixef(model5_fast)[2], xend = 70, yend = fixef(model5_fast)[1] + 70 * fixef(model5_fast)[2] + fixef(model5_fast)[3]), 
+               color = "red", arrow = arrow(type = "closed", ends = "both", length = unit(0.3, "cm"))) +
+  
+  # Add similar segments for moderate
+  geom_segment(aes(x = 40, y = fixef(model5_moderate)[1] + 40 * fixef(model5_moderate)[2], xend = 60, yend = fixef(model5_moderate)[1] + 60 * fixef(model5_moderate)[2]), size = 2, color = "blue", linetype = "solid") +
+  geom_segment(aes(x = 80, y = fixef(model5_moderate)[1] + 80 * fixef(model5_moderate)[2] + fixef(model5_moderate)[3], xend = 100, yend = fixef(model5_moderate)[1] + 100 * fixef(model5_moderate)[2] + fixef(model5_moderate)[3]), size = 2, color = "blue", linetype = "solid") +
+  geom_segment(aes(x = 60, y = fixef(model5_moderate)[1] + 60 * fixef(model5_moderate)[2], xend = 70, yend = fixef(model5_moderate)[1] + 70 * fixef(model5_moderate)[2]), size = 2, alpha = 0.5, color = "blue", linetype = "dotted") +
+  geom_segment(aes(x = 70, y = fixef(model5_moderate)[1] + 70 * fixef(model5_moderate)[2] + fixef(model5_moderate)[3], xend = 80, yend = fixef(model5_moderate)[1] + 80 * fixef(model5_moderate)[2] + fixef(model5_moderate)[3]), size = 2, color = "blue", linetype = "dotted") +
+  
+  # Bidirectional arrow connecting moderate regression lines at x=70
+  geom_segment(aes(x = 70, y = fixef(model5_moderate)[1] + 70 * fixef(model5_moderate)[2], xend = 70, yend = fixef(model5_moderate)[1] + 70 * fixef(model5_moderate)[2] + fixef(model5_moderate)[3]), 
+               color = "blue", arrow = arrow(type = "closed", ends = "both", length = unit(0.3, "cm"))) +
+  
+  # Add similar segments for slow
+  geom_segment(aes(x = 40, y = fixef(model5_slow)[1] + 40 * fixef(model5_slow)[2], xend = 60, yend = fixef(model5_slow)[1] + 60 * fixef(model5_slow)[2]), size = 2, color = "green", linetype = "solid") +
+  geom_segment(aes(x = 80, y = fixef(model5_slow)[1] + 80 * fixef(model5_slow)[2] + fixef(model5_slow)[3], xend = 100, yend = fixef(model5_slow)[1] + 100 * fixef(model5_slow)[2] + fixef(model5_slow)[3]), size = 2, color = "green", linetype = "solid") +
+  geom_segment(aes(x = 60, y = fixef(model5_slow)[1] + 60 * fixef(model5_slow)[2], xend = 70, yend = fixef(model5_slow)[1] + 70 * fixef(model5_slow)[2]), size = 2, alpha = 0.5, color = "green", linetype = "dotted") +
+  geom_segment(aes(x = 70, y = fixef(model5_slow)[1] + 70 * fixef(model5_slow)[2] + fixef(model5_slow)[3], xend = 80, yend = fixef(model5_slow)[1] + 80 * fixef(model5_slow)[2] + fixef(model5_slow)[3]), size = 2, color = "green", linetype = "dotted") +
+  
+  # Bidirectional arrow connecting slow regression lines at x=70
+  geom_segment(aes(x = 70, y = fixef(model5_slow)[1] + 70 * fixef(model5_slow)[2], xend = 70, yend = fixef(model5_slow)[1] + 70 * fixef(model5_slow)[2] + fixef(model5_slow)[3]), 
+               color = "green", arrow = arrow(type = "closed", ends = "both", length = unit(0.3, "cm"))) +
+  
+  # Color scale for legend
+  scale_color_manual(name = "", values = c("Fast" = "red", "Moderate" = "blue", "Slow" = "green")) +
+  
+  # Set y-axis limits
+  ylim(-17, 17) +
+  
+  # Labels and theme
+  labs(
+    title = "",
+    x = "Ball Position (cm)",
+    y = "Estimation Error (cm)"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "right",   
+    panel.grid = element_blank(),  
+    axis.line = element_line(linewidth = 1),    
+    axis.ticks = element_line(linewidth = 1),
+    text = element_text(size = 30),         
+    axis.text = element_text(size = 30, face = "plain", color = "black"),    
+    axis.title = element_text(size = 30, face = "plain", color = "black"),   
+    legend.text = element_text(size = 30, margin = margin(b = 15)),  
+    legend.title = element_text(size = 30, face = "plain", color = "black"),
+    legend.spacing.x = unit(1, "cm"),   
+    legend.key.width = unit(1.5, "cm")
+  )
+
+# Display and save the plot
+p
+ggsave(filename = "plots/all_subjects_day2_and_day3.png", plot = p, width = 15, height = 13)
+ggsave(filename = "plots/all_subjects_day2_and_day3.svg", plot = p, width = 15, height = 13)
+
+
+
+# Load necessary libraries
+library(ggplot2)
+library(grid)
+
+# Data frame for plotting vertical arrows in the legend
+# Adjust 'x' values to position each arrow horizontally
+arrow_data <- data.frame(
+  x = c(1, 1.1, 1.2),          # horizontal positions for each arrow
+  y_start = c(1, 1, 1),    # starting y position (same for all)
+  y_end = c(3, 3, 3),      # ending y position to set arrow length (same for all)
+  condition = c("Fast", "Moderate", "Slow")
+)
+
+# Separate legend plot with three vertical bidirectional arrows next to each other
+legend_plot <- ggplot(arrow_data, aes(x = x, xend = x, y = y_start, yend = y_end, color = condition)) +
+  geom_segment(arrow = arrow(type = "closed", ends = "both", length = unit(0.3, "cm")), size = 1.5) +
+  
+  # Define color for each condition
+  scale_color_manual(values = c("Fast" = "red", "Moderate" = "blue", "Slow" = "green")) +
+  
+  # Add title for the separate legend plot
+  labs(title = "Bimodal Prior Effect") +
+  
+  # Adjust theme for a clean legend appearance
+  theme_minimal() +
+  theme(
+    axis.title = element_blank(),  # Remove axis titles
+    axis.text = element_blank(),   # Remove axis text
+    axis.ticks = element_blank(),  # Remove axis ticks
+    panel.grid = element_blank(),  # Remove grid lines
+    legend.position = "none",      # Remove any ggplot2 legend
+    plot.title = element_text(size = 30, hjust = 0.5),  # Center the title
+    plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm")     # Add some padding
+  ) +
+  coord_cartesian(clip = "off")  # Prevent clipping of arrows
+
+# Display the separate legend plot
+legend_plot
+
+# Save the separate legend plot as a PNG file
+ggsave(filename = "plots/legend_bidirectional_arrows.png", plot = legend_plot, width = 15, height = 13, units = "cm")
+
+# Save the separate legend plot as a SVG file
+ggsave(filename = "plots/legend_bidirectional_arrows.svg", plot = legend_plot, width = 15, height = 13, units = "cm")

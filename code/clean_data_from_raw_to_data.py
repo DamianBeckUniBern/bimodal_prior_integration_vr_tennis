@@ -80,7 +80,35 @@ for day_number in range(1, 4):
 
     #delete all rows  with other vp than on the following list (all other vp were empty or did not finish the experiment)
     vp_list = list(range(1, 13)) + list(range(15, 20)) + list(range(22, 29))
-    selected_columns = selected_columns[selected_columns['subject'].isin(vp_list)]
+    selected_columns = selected_columns[selected_columns['subject'].isin(vp_list)].copy(deep=True).reset_index(drop=True)
+
+    ## Check if the hit was during the backswing
+    # Specify the path to the backswing_check data file
+    backswing_check = f'raw_data\\overall_back_swing_check\\overall_back_swing_check.csv'
+    backswing_check_path = os.path.join(parent_folder,backswing_check)
+    backswing_check_file = pd.read_csv(backswing_check_path)
+    if day_number == 1:
+        backsing_check_session = backswing_check_file[backswing_check_file['session'] == "_Session1_d01_"]
+    elif day_number == 2:
+        backsing_check_session = backswing_check_file[backswing_check_file['session'] == "_Session2_d02_"]
+    elif day_number == 3:
+        backsing_check_session = backswing_check_file[backswing_check_file['session'] == "_Session3_d03_"]
+    else:
+        print("Error: day number not in range 1-3")
+
+    # Add a new column "backswing" to output_control
+    selected_columns['backswing'] = None
+
+    # Iterate through each row and update the "backswing" column
+    for index, row in selected_columns.iterrows():
+        subject = "vp" + str(row['subject'])
+        trial_number = row['trial_number']
+        backswing_entry = backsing_check_session[(backsing_check_session['vp'] == subject) & (backsing_check_session['trial_number'] == trial_number)]['backswing'].values
+        if len(backswing_entry) > 0:
+            backswing_entry = backswing_entry[0]
+        else:
+            backswing_entry = None
+        selected_columns.at[index, 'backswing'] = backswing_entry
 
     # Export the selected columns to a CSV file
     export_path = os.path.join(parent_folder, f'data\\output_day{day_number}.csv')
