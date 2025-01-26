@@ -557,7 +557,7 @@ p <- ggplot() +
                      values = c("Fast" = "red", "Moderate" = "blue", "Slow" = "green")) +
   
   # Set y-axis limits
-  ylim(-17, 17) +  # Add this line to set y-axis range
+  ylim(-20, 20) +  # Add this line to set y-axis range
   
   # Labels and theme
   labs(
@@ -582,9 +582,9 @@ p <- ggplot() +
 p
 
 # Save the plot
-ggsave(filename = "plots/all_subjects_day2.png", plot = p, width = 20, height = 12)
+ggsave(filename = "plots/all_subjects_day2.png", plot = p, width = 15, height = 13)
 # Save as vector graphic
-ggsave(filename = "plots/all_subjects_day2.svg", plot = p, width = 20, height = 12)
+ggsave(filename = "plots/all_subjects_day2.svg", plot = p, width = 15, height = 13)
 
 
 
@@ -638,7 +638,7 @@ p <- ggplot() +
   scale_color_manual(name = "", values = c("Fast" = "red", "Moderate" = "blue", "Slow" = "green")) +
   
   # Set y-axis limits
-  ylim(-17, 17) +
+  ylim(-20, 20) +
   
   # Labels and theme
   labs(
@@ -712,3 +712,4 @@ ggsave(filename = "plots/legend_bidirectional_arrows.png", plot = legend_plot, w
 
 # Save the separate legend plot as a SVG file
 ggsave(filename = "plots/legend_bidirectional_arrows.svg", plot = legend_plot, width = 15, height = 13, units = "cm")
+

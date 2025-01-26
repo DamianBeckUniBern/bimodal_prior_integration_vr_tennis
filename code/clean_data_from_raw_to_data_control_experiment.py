@@ -57,7 +57,7 @@ for i in range(len(df)):
         df.iloc[i, condition_number_column] = np.nan
 
 # Select the desired columns from df
-selected_columns = df[['subject', 'horizontalDifference', 'ball_position', 'trial_number', 'condition']]
+selected_columns = df[['subject', 'horizontal_difference', 'ball_position', 'trial_number', 'condition']]
 selected_columns['subject'] = selected_columns['subject'].astype(int)
 
 #delete all rows  with other vp than on the following list

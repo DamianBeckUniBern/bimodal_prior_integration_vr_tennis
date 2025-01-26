@@ -526,74 +526,6 @@ bins_with_stats_all_subjects_slow <- create_bins_with_stats_all_subjects(slow)
 
 
 # Plot the mean and 95% confidence intervals for each bin across all subjects
-#No interaction effect
-p <- ggplot() +
-
-  # Fast data points and error bars
-  geom_point(data = bins_with_stats_all_subjects_fast, aes(x = bin, y = mean, color = "Fast")) +
-  geom_errorbar(data = bins_with_stats_all_subjects_fast, aes(x = bin, ymin = lower, ymax = upper, color = "Fast"), width = 0.2) +
-  
-  # Moderate data points and error bars
-  geom_point(data = bins_with_stats_all_subjects_moderate, aes(x = bin, y = mean, color = "Moderate")) +
-  geom_errorbar(data = bins_with_stats_all_subjects_moderate, aes(x = bin, ymin = lower, ymax = upper, color = "Moderate"), width = 0.2) +
-  
-  # Slow data points and error bars
-  geom_point(data = bins_with_stats_all_subjects_slow, aes(x = bin, y = mean, color = "Slow")) +
-  geom_errorbar(data = bins_with_stats_all_subjects_slow, aes(x = bin, ymin = lower, ymax = upper, color = "Slow"), width = 0.2) +
-  
-  # Add segments for fast
-  geom_segment(aes(x = 40,y = fixef(model5_fast)[1]+ 40*fixef(model5_fast)[2], xend = 60, yend = fixef(model5_fast)[1]+ 60*fixef(model5_fast)[2]), size = 2, color = "red", linetype = "solid") +
-  geom_segment(aes(x = 80,y = fixef(model5_fast)[1]+ 80*fixef(model5_fast)[2]+fixef(model5_fast)[3], xend = 100, yend = fixef(model5_fast)[1]+ 100*fixef(model5_fast)[2]+fixef(model5_fast)[3]), size = 2, color = "red", linetype = "solid") +
-  geom_segment(aes(x = 60,y = fixef(model5_fast)[1]+ 60*fixef(model5_fast)[2], xend = 70, yend = fixef(model5_fast)[1]+ 70*fixef(model5_fast)[2]), size = 2, alpha = 0.5,  color = "red", linetype = "dotted") +
-  geom_segment(aes(x = 70,y = fixef(model5_fast)[1]+ 70*fixef(model5_fast)[2]+fixef(model5_fast)[3], xend = 80, yend = fixef(model5_fast)[1]+ 80*fixef(model5_fast)[2]+fixef(model5_fast)[3]), size = 2, color = "red", linetype = "dotted") +
-  # Add similar segments for moderate
-  geom_segment(aes(x = 40, y = fixef(model5_moderate)[1] + 40 * fixef(model5_moderate)[2], xend = 60, yend = fixef(model5_moderate)[1] + 60 * fixef(model5_moderate)[2]), size = 2, color = "blue", linetype = "solid") +
-  geom_segment(aes(x = 80, y = fixef(model5_moderate)[1] + 80 * fixef(model5_moderate)[2] + fixef(model5_moderate)[3], xend = 100, yend = fixef(model5_moderate)[1] + 100 * fixef(model5_moderate)[2] + fixef(model5_moderate)[3]), size = 2, color = "blue", linetype = "solid") +
-  geom_segment(aes(x = 60, y = fixef(model5_moderate)[1] + 60 * fixef(model5_moderate)[2], xend = 70, yend = fixef(model5_moderate)[1] + 70 * fixef(model5_moderate)[2]), size = 2, alpha = 0.5, color = "blue", linetype = "dotted") +
-  geom_segment(aes(x = 70, y = fixef(model5_moderate)[1] + 70 * fixef(model5_moderate)[2] + fixef(model5_moderate)[3], xend = 80, yend = fixef(model5_moderate)[1] + 80 * fixef(model5_moderate)[2] + fixef(model5_moderate)[3]), size = 2, color = "blue", linetype = "dotted") +
-  # Add similar segments for slow
-  geom_segment(aes(x = 40, y = fixef(model5_slow)[1] + 40 * fixef(model5_slow)[2], xend = 60, yend = fixef(model5_slow)[1] + 60 * fixef(model5_slow)[2]), size = 2, color = "green", linetype = "solid") +
-  geom_segment(aes(x = 80, y = fixef(model5_slow)[1] + 80 * fixef(model5_slow)[2] + fixef(model5_slow)[3], xend = 100, yend = fixef(model5_slow)[1] + 100 * fixef(model5_slow)[2] + fixef(model5_slow)[3]), size = 2, color = "green", linetype = "solid") +
-  geom_segment(aes(x = 60, y = fixef(model5_slow)[1] + 60 * fixef(model5_slow)[2], xend = 70, yend = fixef(model5_slow)[1] + 70 * fixef(model5_slow)[2]), size = 2, alpha = 0.5, color = "green", linetype = "dotted") +
-  geom_segment(aes(x = 70, y = fixef(model5_slow)[1] + 70 * fixef(model5_slow)[2] + fixef(model5_slow)[3], xend = 80, yend = fixef(model5_slow)[1] + 80 * fixef(model5_slow)[2] + fixef(model5_slow)[3]), size = 2, color = "green", linetype = "dotted") +
-  
-  # Color scale for legend
-  scale_color_manual(name = "", 
-                     values = c("Fast" = "red", "Moderate" = "blue", "Slow" = "green")) +
-  
-  # Set y-axis limits
-  ylim(-20, 20) +  # Add this line to set y-axis range
-    
-  # Labels and theme
-  labs(
-    title = "",
-    x = "Ball Position (cm)",
-    y = "Estimation Error [Horizontal Ball Position - Racket Center] (cm)"
-  ) +
-  theme_minimal() +
-  theme(
-    legend.position = "right",   
-    panel.grid = element_blank(),  
-    axis.line = element_line(linewidth = 1),    
-    axis.ticks = element_line(linewidth = 1),
-    text = element_text(size = 26),         
-    axis.text = element_text(size = 26, face = "plain", color = "black"),    
-    axis.title = element_text(size = 26, face = "plain", color = "black"),   
-    legend.text = element_text(size = 26, margin = margin(b = 15)),  
-    legend.title = element_text(size = 26, face = "plain", color = "black"),
-    legend.spacing.x = unit(1, "cm"),   
-    legend.key.width = unit(1.5, "cm")
-  )
-p
-
-# Save the plot
-ggsave(filename = "plots/all_subjects_day2_and_day3.png", plot = p, width = 15, height = 13)
-# Save as vector graphic
-ggsave(filename = "plots/all_subjects_day2_and_day3.svg", plot = p, width = 15, height = 13)
-
-
-
-
 # Define the plot with bidirectional arrows at x=70
 p <- ggplot() +
   
@@ -643,7 +575,7 @@ p <- ggplot() +
   scale_color_manual(name = "", values = c("Fast" = "red", "Moderate" = "blue", "Slow" = "green")) +
   
   # Set y-axis limits
-  ylim(-17, 17) +
+  ylim(-20, 20) +
   
   # Labels and theme
   labs(
@@ -717,3 +649,4 @@ ggsave(filename = "plots/legend_bidirectional_arrows.png", plot = legend_plot, w
 
 # Save the separate legend plot as a SVG file
 ggsave(filename = "plots/legend_bidirectional_arrows.svg", plot = legend_plot, width = 15, height = 13, units = "cm")
+

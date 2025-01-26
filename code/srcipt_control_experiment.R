@@ -16,26 +16,26 @@
 #1. Load necessary packages and functions
 #2. load data and make dummy variable for 
 #left and right side of bimodal distribution
-#3. Filter data by condition to analyse each condition separately
-#4. Delete outliers detected with cooks distance, an outlier is defined
+#3. Quantify non valid trials (no hits and backswing)
+#4. Filter data by condition to analyse each condition separately
+#5. Delete outliers detected with cooks distance, an outlier is defined
 #as more than 3 times more influential than an average point
-#5. Perform multilevel regression analysis as the assumption of independence 
+#6. Perform multilevel regression analysis as the assumption of independence 
 #of residuals is violated. Therefor procedure according to Andy Field (2012)
 #for each condition separately. Start  to build up the models according
 #model complexity with an intercept only model, one predictor model, random
 #intercept model, random slope model, additional dummy predictor left_right
-#6. Check for collinearity, normality of residuals and homoscedasticity
-#7. Model comparison with anova (according to the parsimony principle)
-#8. Calculate a robust model because of potential small violations of normality
+#7. Check for collinearity, normality of residuals and homoscedasticity
+#8. Model comparison with anova (according to the parsimony principle)
+#9. Calculate a robust model because of potential small violations of normality
 #assumptions of residuals
-#9. Plot for all participants "estimation error" as a function of "ball_position"
-#10. Create bins and calculate mean and 95% CI across all subjects for each condition
-#11. Plot the mean and 95% confidence intervals for each bin across all subjects
+#10. Plot for all participants "estimation error" as a function of "ball_position"
+#11. Create bins and calculate mean and 95% CI across all subjects for each condition
+#12. Plot the mean and 95% confidence intervals for each bin across all subjects
 #for each condition together in one single plot
 
 # Packages ----
 #---------------------------------------------------------------
-#install packages recommended by Field (2012)
 #install.packages("car", dependencies = TRUE)
 #install.packages("ggplot2", dependencies = TRUE)
 #install.packages("nlme", dependencies = TRUE)
@@ -90,15 +90,9 @@ vif.lme <- function (mod)
 
 # Import data ----
 #---------------------------------------------------------------
-data_all <- read.csv("output_control_with_backswing_check.csv") 
+data_all <- read.csv("data/output_control.csv") 
 View(data_all)
 summary(data_all)
-
-#filter data_all with backswing false
-data_all <- filter(data_all, data_all$backswing == "False")
-
-check <- filter(data_all, data_all$backswing == "True")
-View(check)
 
 #Make dummy variable for left and right side of bimodal distribution
 data_all$left_right <- ifelse(data_all$ball_position > 70, 1,0)
@@ -106,30 +100,26 @@ data_all$left_right <- ifelse(data_all$ball_position > 70, 1,0)
 #filter data exclude warm up
 data_all <- filter(data_all, data_all$trial_number > 96)
 
-#exclude vp15 because of wrong unreal game during data collection
-data_all <- filter(data_all, data_all$subject != "vp15")
+# Non valid trials ----
+#---------------------------------------------------------------
+# overall number of non valid trials
+# each day 24 subjects * 480 trials = 288 trials = 11520 trials (without warm-up)
+# No hit trials = 11520 - length(data_all)
+number_of_no_hits <- 11520 - dim(data_all)[1]
+percentage_of_no_hits <- number_of_no_hits / 11520 * 100
+percentage_of_no_hits #percentage of no hits is 15.76
 
-# Filter data by ball position
-data_47_53 <- filter(data_all, data_all$ball_position > 47 & data_all$ball_position < 53)
-data_47_53_fast <- filter(data_47_53, data_47_53$condition == "fast")
-data_47_53_moderate <- filter(data_47_53, data_47_53$condition == "moderate")
-data_47_53_slow <- filter(data_47_53, data_47_53$condition == "slow")
-View(data_47_53_fast)
-
-summary(data_47_53_fast)
-summary(data_47_53_moderate)
-summary(data_47_53_slow)
-
-data_87_93 <- filter(data_all, data_all$ball_position > 87 & data_all$ball_position < 93)
-data_87_93_fast <- filter(data_87_93, data_87_93$condition == "fast")
-data_87_93_moderate <- filter(data_87_93, data_87_93$condition == "moderate")
-data_87_93_slow <- filter(data_87_93, data_87_93$condition == "slow")
-summary(data_87_93_fast)
-summary(data_87_93_moderate)
-summary(data_87_93_slow)
+# exclude data for backswing true
+number_of_backswing_hits <- data_all %>% filter(backswing == "True")
+dim(number_of_backswing_hits)[1]
+percentage_of_backswing_hits <- dim(number_of_backswing_hits)[1] / 11520 * 100
+percentage_of_backswing_hits #percentage of backswing hits is 1.65%
 
 # Filter data ----
 #---------------------------------------------------------------
+# exclude data with backswing true
+data_all <- data_all %>% filter(backswing == "False")
+
 # Filter data by condition
 fast <- filter(data_all, data_all$condition == "fast")
 summary(fast)
