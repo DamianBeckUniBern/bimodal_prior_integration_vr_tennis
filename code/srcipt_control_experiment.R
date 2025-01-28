@@ -27,11 +27,9 @@
 #intercept model, random slope model, additional dummy predictor left_right
 #7. Check for collinearity, normality of residuals and homoscedasticity
 #8. Model comparison with anova (according to the parsimony principle)
-#9. Calculate a robust model because of potential small violations of normality
-#assumptions of residuals
-#10. Plot for all participants "estimation error" as a function of "ball_position"
-#11. Create bins and calculate mean and 95% CI across all subjects for each condition
-#12. Plot the mean and 95% confidence intervals for each bin across all subjects
+#9. Plot for all participants "estimation error" as a function of "ball_position"
+#10. Create bins and calculate mean and 95% CI across all subjects for each condition
+#11. Plot the mean and 95% confidence intervals for each bin across all subjects
 #for each condition together in one single plot
 
 # Packages ----
@@ -205,40 +203,34 @@ car::vif(model5_fast)
 vif.lme(model5_fast) #according to the vif, there is only little variance inflation
 
 #check for normality of residuals
-plot(residuals(model5_fast))
-qqnorm(residuals(model5_fast))
-qqline(residuals(model5_fast))
-hist(residuals(model5_fast)) #residuals are visually normally distributed
+plot(residuals(model4_fast))
+qqnorm(residuals(model4_fast))
+qqline(residuals(model4_fast))
+hist(residuals(model4_fast)) #residuals are visually normally distributed
 #simple size to large for shapiro test
-#shapiro.test(residuals(model5_fast)) 
+#shapiro.test(residuals(model4_fast)) 
 
 #Model comparison
 anova(model1_fast, model2_fast, model3_fast, model4_fast, model5_fast)
 
-#calculate a robust model because of potential small violations of normality assumptions of residuals
-#same interpretation as for the non robust model
-robust_model_left_right <- rlm(horizontal_difference ~ ball_position + left_right, data = fast)
-summary(robust_model_left_right)
-tab_model(robust_model_left_right)
-
 #plot individuals with a for loop from 1 to 24
-#for (i in 1:24) {
-#  individual_data <- filter(fast, subject==levels(as.factor(data_all$subject))[i])
-#  title <- paste("subject", i, "in the fast condition")
-#  i_plot <- ggplot(individual_data, aes(x = ball_position, y = horizontal_difference)) +
-#    geom_point() +  # This adds the scatter points
-#    labs(title = title,
-#         x = "ball positions (cm)",
-#         y = "estimation error [horizontal ball position - racket center] (cm)") +
-#    theme_minimal() +
-#    geom_segment(aes(x = 40,y = coef(model5_fast)[i,1]+ 40*coef(model5_fast)[i,2], xend = 60, yend = coef(model5_fast)[i,1]+ 60*coef(model5_fast)[i,2]), size = 2, alpha = 0.5,  linetype = "solid") +
-#    geom_segment(aes(x = 80,y = coef(model5_fast)[i,1]+ 80*coef(model5_fast)[i,2]+coef(model5_fast)[i,3], xend = 100, yend = coef(model5_fast)[i,1]+ 100*coef(model5_fast)[i,2]+coef(model5_fast)[i,3]), size = 2, alpha = 0.5,  linetype = "solid") +
-#    geom_segment(aes(x = 60,y = coef(model5_fast)[i,1]+ 60*coef(model5_fast)[i,2], xend = 70, yend = coef(model5_fast)[i,1]+ 70*coef(model5_fast)[i,2]), size = 0.5, alpha = 0.5,  linetype = "solid") +
-#    geom_segment(aes(x = 70,y = coef(model5_fast)[i,1]+ 70*coef(model5_fast)[i,2]+coef(model5_fast)[i,3], xend = 80, yend = coef(model5_fast)[i,1]+ 80*coef(model5_fast)[i,2]+coef(model5_fast)[i,3]), size = 0.5, alpha = 0.5,  linetype = "solid") +
-#    theme(legend.position = "none")
-#  path <- file.path("plots/individual_plots_day1/fast", paste(as.character(i),"fast_plot.png"))
-#  ggsave(path, i_plot, width = 9, height = 6, units = "cm")
-#}
+for (i in 1:24) {
+  individual_data <- filter(fast, subject==levels(as.factor(data_all$subject))[i])
+  title <- paste("subject", i, "in the fast condition")
+  i_plot <- ggplot(individual_data, aes(x = ball_position, y = horizontal_difference)) +
+    geom_point() +  # This adds the scatter points
+    labs(title = title,
+         x = "ball positions (cm)",
+         y = "estimation error (cm)") +
+    theme_minimal() +
+    geom_segment(aes(x = 40,y = coef(model5_fast)[i,1]+ 40*coef(model5_fast)[i,2], xend = 60, yend = coef(model5_fast)[i,1]+ 60*coef(model5_fast)[i,2]), size = 2, alpha = 0.5,  linetype = "solid") +
+    geom_segment(aes(x = 80,y = coef(model5_fast)[i,1]+ 80*coef(model5_fast)[i,2]+coef(model5_fast)[i,3], xend = 100, yend = coef(model5_fast)[i,1]+ 100*coef(model5_fast)[i,2]+coef(model5_fast)[i,3]), size = 2, alpha = 0.5,  linetype = "solid") +
+    geom_segment(aes(x = 60,y = coef(model5_fast)[i,1]+ 60*coef(model5_fast)[i,2], xend = 70, yend = coef(model5_fast)[i,1]+ 70*coef(model5_fast)[i,2]), size = 0.5, alpha = 0.5,  linetype = "solid") +
+    geom_segment(aes(x = 70,y = coef(model5_fast)[i,1]+ 70*coef(model5_fast)[i,2]+coef(model5_fast)[i,3], xend = 80, yend = coef(model5_fast)[i,1]+ 80*coef(model5_fast)[i,2]+coef(model5_fast)[i,3]), size = 0.5, alpha = 0.5,  linetype = "solid") +
+    theme(legend.position = "none")
+  path <- file.path("plots/individual_plots_control/fast", paste(as.character(i),"fast_plot.png"))
+  ggsave(path, i_plot, width = 9, height = 6, units = "cm")
+}
 
 #Moderate ----
 #---------------------------------------------------------------
@@ -313,40 +305,34 @@ car::vif(model5_moderate)
 vif.lme(model5_moderate) #according to the vif, there is only little variance inflation
 
 #check for normality of residuals
-plot(residuals(model5_moderate))
-qqnorm(residuals(model5_moderate))
-qqline(residuals(model5_moderate))
-hist(residuals(model5_moderate)) #residuals are visually normally distributed
+plot(residuals(model4_moderate))
+qqnorm(residuals(model4_moderate))
+qqline(residuals(model4_moderate))
+hist(residuals(model4_moderate)) #residuals are visually normally distributed
 #simple size to large for shapiro test
-#shapiro.test(residuals(model5_moderate)) 
+#shapiro.test(residuals(model4_moderate)) 
 
 #Model comparison
 anova(model1_moderate, model2_moderate, model3_moderate, model4_moderate, model5_moderate)
 
-#calculate a robust model because of potential small violations of normality assumptions of residuals
-#same interpretation as for the non robust model
-robust_model_left_right <- rlm(horizontal_difference ~ ball_position + left_right, data = moderate)
-summary(robust_model_left_right)
-tab_model(robust_model_left_right)
 
 #plot individuals with a for loop from 1 to 24
-#for (i in 1:24) {
-#  individual_data <- filter(moderate, subject==levels(as.factor(data_all$subject))[i])
-#  title <- paste("subject", i, "in the moderate condition")
-#  i_plot <- ggplot(individual_data, aes(x = ball_position, y = horizontal_difference)) +
-#    geom_point() +  # This adds the scatter points
-#    labs(title = title,
-#         x = "ball positions (cm)",
-#         y = "estimation error [horizontal ball position - racket center] (cm)") +
-#    theme_minimal() +
-#    geom_segment(aes(x = 40,y = coef(model5_moderate)[i,1]+ 40*coef(model5_moderate)[i,2], xend = 60, yend = coef(model5_moderate)[i,1]+ 60*coef(model5_moderate)[i,2]), size = 2, alpha = 0.5,  linetype = "solid") +
-#    geom_segment(aes(x = 80,y = coef(model5_moderate)[i,1]+ 80*coef(model5_moderate)[i,2]+coef(model5_moderate)[i,3], xend = 100, yend = coef(model5_moderate)[i,1]+ 100*coef(model5_moderate)[i,2]+coef(model5_moderate)[i,3]), size = 2, alpha = 0.5,  linetype = "solid") +
-#    geom_segment(aes(x = 60,y = coef(model5_moderate)[i,1]+ 60*coef(model5_moderate)[i,2], xend = 70, yend = coef(model5_moderate)[i,1]+ 70*coef(model5_moderate)[i,2]), size = 0.5, alpha = 0.5,  linetype = "solid") +
-#    geom_segment(aes(x = 70,y = coef(model5_moderate)[i,1]+ 70*coef(model5_moderate)[i,2]+coef(model5_moderate)[i,3], xend = 80, yend = coef(model5_moderate)[i,1]+ 80*coef(model5_moderate)[i,2]+coef(model5_moderate)[i,3]), size = 0.5, alpha = 0.5,  linetype = "solid") +
-#    theme(legend.position = "none")
-#  path <- file.path("plots/individual_plots_day1/moderate", paste(as.character(i),"moderate_plot_day1.png"))
-#  ggsave(path, i_plot, width = 9, height = 6, units = "cm")
-#}
+for (i in 1:24) {
+  individual_data <- filter(moderate, subject==levels(as.factor(data_all$subject))[i])
+  title <- paste("subject", i, "in the moderate condition")
+  i_plot <- ggplot(individual_data, aes(x = ball_position, y = horizontal_difference)) +
+    geom_point() +  # This adds the scatter points
+    labs(title = title,
+         y = "estimation error (cm)") +
+    theme_minimal() +
+    geom_segment(aes(x = 40,y = coef(model5_moderate)[i,1]+ 40*coef(model5_moderate)[i,2], xend = 60, yend = coef(model5_moderate)[i,1]+ 60*coef(model5_moderate)[i,2]), size = 2, alpha = 0.5,  linetype = "solid") +
+    geom_segment(aes(x = 80,y = coef(model5_moderate)[i,1]+ 80*coef(model5_moderate)[i,2]+coef(model5_moderate)[i,3], xend = 100, yend = coef(model5_moderate)[i,1]+ 100*coef(model5_moderate)[i,2]+coef(model5_moderate)[i,3]), size = 2, alpha = 0.5,  linetype = "solid") +
+    geom_segment(aes(x = 60,y = coef(model5_moderate)[i,1]+ 60*coef(model5_moderate)[i,2], xend = 70, yend = coef(model5_moderate)[i,1]+ 70*coef(model5_moderate)[i,2]), size = 0.5, alpha = 0.5,  linetype = "solid") +
+    geom_segment(aes(x = 70,y = coef(model5_moderate)[i,1]+ 70*coef(model5_moderate)[i,2]+coef(model5_moderate)[i,3], xend = 80, yend = coef(model5_moderate)[i,1]+ 80*coef(model5_moderate)[i,2]+coef(model5_moderate)[i,3]), size = 0.5, alpha = 0.5,  linetype = "solid") +
+    theme(legend.position = "none")
+  path <- file.path("plots/individual_plots_control/moderate", paste(as.character(i),"moderate_plot_control.png"))
+  ggsave(path, i_plot, width = 9, height = 6, units = "cm")
+}
 
 
 
@@ -423,41 +409,35 @@ car::vif(model5_slow)
 vif.lme(model5_slow) #according to the vif, there is only little variance inflation
 
 #check for normality of residuals
-plot(residuals(model5_slow))
-qqnorm(residuals(model5_slow))
-qqline(residuals(model5_slow))
-hist(residuals(model5_slow)) #residuals are visually normally distributed
+plot(residuals(model4_slow))
+qqnorm(residuals(model4_slow))
+qqline(residuals(model4_slow))
+hist(residuals(model4_slow)) #residuals are visually normally distributed
 #simple size to large for shapiro test
-#shapiro.test(residuals(model5_slow)) 
+#shapiro.test(residuals(model4_slow)) 
 
 
 #Model comparison
 anova(model1_slow, model2_slow, model3_slow, model4_slow, model5_slow)
 
-#calculate a robust model because of potential small violations of normality assumptions of residuals
-#robust model left_right not signicificant with less effect
-robust_model_left_right <- rlm(horizontal_difference ~ ball_position + left_right, data = slow)
-summary(robust_model_left_right)
-tab_model(robust_model_left_right)
-
 #plot individuals with a for loop from 1 to 24
-#for (i in 1:24) {
-#  individual_data <- filter(slow, subject==levels(as.factor(data_all$subject))[i])
-#  title <- paste("subject", i, "in the slow condition")
-#  i_plot <- ggplot(individual_data, aes(x = ball_position, y = horizontal_difference)) +
-#    geom_point() +  # This adds the scatter points
-#    labs(title = title,
-#         x = "ball positions (cm)",
-#         y = "estimation error [horizontal ball position - racket center] (cm)") +
-#    theme_minimal() +
-#    geom_segment(aes(x = 40,y = coef(model5_slow)[i,1]+ 40*coef(model5_slow)[i,2], xend = 60, yend = coef(model5_slow)[i,1]+ 60*coef(model5_slow)[i,2]), size = 2, alpha = 0.5,  linetype = "solid") +
-#    geom_segment(aes(x = 80,y = coef(model5_slow)[i,1]+ 80*coef(model5_slow)[i,2]+coef(model5_slow)[i,3], xend = 100, yend = coef(model5_slow)[i,1]+ 100*coef(model5_slow)[i,2]+coef(model5_slow)[i,3]), size = 2, alpha = 0.5,  linetype = "solid") +
-#    geom_segment(aes(x = 60,y = coef(model5_slow)[i,1]+ 60*coef(model5_slow)[i,2], xend = 70, yend = coef(model5_slow)[i,1]+ 70*coef(model5_slow)[i,2]), size = 0.5, alpha = 0.5,  linetype = "solid") +
-#    geom_segment(aes(x = 70,y = coef(model5_slow)[i,1]+ 70*coef(model5_slow)[i,2]+coef(model5_slow)[i,3], xend = 80, yend = coef(model5_slow)[i,1]+ 80*coef(model5_slow)[i,2]+coef(model5_slow)[i,3]), size = 0.5, alpha = 0.5,  linetype = "solid") +
-#    theme(legend.position = "none")
-#  path <- file.path("plots/individual_plots_day1/slow", paste(as.character(i),"slow_plot.png"))
-#  ggsave(path, i_plot, width = 9, height = 6, units = "cm")
-#}
+for (i in 1:24) {
+  individual_data <- filter(slow, subject==levels(as.factor(data_all$subject))[i])
+  title <- paste("subject", i, "in the slow condition")
+  i_plot <- ggplot(individual_data, aes(x = ball_position, y = horizontal_difference)) +
+    geom_point() +  # This adds the scatter points
+    labs(title = title,
+         x = "ball positions (cm)",
+         y = "estimation error (cm)") +
+    theme_minimal() +
+    geom_segment(aes(x = 40,y = coef(model5_slow)[i,1]+ 40*coef(model5_slow)[i,2], xend = 60, yend = coef(model5_slow)[i,1]+ 60*coef(model5_slow)[i,2]), size = 2, alpha = 0.5,  linetype = "solid") +
+    geom_segment(aes(x = 80,y = coef(model5_slow)[i,1]+ 80*coef(model5_slow)[i,2]+coef(model5_slow)[i,3], xend = 100, yend = coef(model5_slow)[i,1]+ 100*coef(model5_slow)[i,2]+coef(model5_slow)[i,3]), size = 2, alpha = 0.5,  linetype = "solid") +
+    geom_segment(aes(x = 60,y = coef(model5_slow)[i,1]+ 60*coef(model5_slow)[i,2], xend = 70, yend = coef(model5_slow)[i,1]+ 70*coef(model5_slow)[i,2]), size = 0.5, alpha = 0.5,  linetype = "solid") +
+    geom_segment(aes(x = 70,y = coef(model5_slow)[i,1]+ 70*coef(model5_slow)[i,2]+coef(model5_slow)[i,3], xend = 80, yend = coef(model5_slow)[i,1]+ 80*coef(model5_slow)[i,2]+coef(model5_slow)[i,3]), size = 0.5, alpha = 0.5,  linetype = "solid") +
+    theme(legend.position = "none")
+  path <- file.path("plots/individual_plots_control/slow", paste(as.character(i),"slow_plot.png"))
+  ggsave(path, i_plot, width = 9, height = 6, units = "cm")
+}
 
 
 
@@ -566,7 +546,7 @@ p <- ggplot() +
   labs(
     title = "",
     x = "Ball Position (cm)",
-    y = "Estimation Error [Horizontal Ball Position - Racket Center] (cm)"
+    y = "Estimation Error (cm)"
   ) +
   theme_minimal() +
   theme(
@@ -574,7 +554,7 @@ p <- ggplot() +
     panel.grid = element_blank(),  
     axis.line = element_line(linewidth = 1),    
     axis.ticks = element_line(linewidth = 1),
-    text = element_text(size = 26),         
+    text = element_text(family = "Arial", size = 26),         
     axis.text = element_text(size = 26, face = "plain", color = "black"),    
     axis.title = element_text(size = 26, face = "plain", color = "black"),   
     legend.text = element_text(size = 26, margin = margin(b = 15)),  
@@ -585,9 +565,9 @@ p <- ggplot() +
 p
 
 # Save the plot
-ggsave(filename = "plots/all_subjects_day1.png", plot = p, width = 15, height = 13)
+ggsave(filename = "plots/control_jump.png", plot = p, width = 15, height = 13)
 # Save as vector graphic
-ggsave(filename = "plots/all_subjects_day1.svg", plot = p, width = 15, height = 13)
+ggsave(filename = "plots/cotrol_jump.svg", plot = p, width = 15, height = 13)
 
 
 
@@ -633,7 +613,7 @@ p <- ggplot() +
   labs(
     title = "",
     x = "Ball Position (cm)",
-    y = "Estimation Error [Horizontal Ball Position - Racket Center] (cm)"
+    y = "Estimation Error (cm)"
   ) +
   theme_minimal() +
   theme(
@@ -652,9 +632,9 @@ p <- ggplot() +
 p
 
 # Save the plot
-ggsave(filename = "plots/all_control_linear.png", plot = p, width = 15, height = 13)
+ggsave(filename = "plots/control_linear.png", plot = p, width = 15, height = 13)
 # Save as vector graphic
-ggsave(filename = "plots/all_control_linear.svg", plot = p, width = 15, height = 13)
+ggsave(filename = "plots/control_linear.svg", plot = p, width = 15, height = 13)
 
 
 

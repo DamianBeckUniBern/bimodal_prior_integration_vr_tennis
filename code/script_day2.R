@@ -27,11 +27,9 @@
 #intercept model, random slope model, additional dummy predictor left_right
 #7. Check for collinearity, normality of residuals and homoscedasticity
 #8. Model comparison with anova (according to the parsimony principle)
-#9. Calculate a robust model because of potential small violations of normality
-#assumptions of residuals
-#10. Plot for all participants "estimation error" as a function of "ball_position"
-#11. Create bins and calculate mean and 95% CI across all subjects for each condition
-#12. Plot the mean and 95% confidence intervals for each bin across all subjects
+#9. Plot for all participants "estimation error" as a function of "ball_position"
+#10. Create bins and calculate mean and 95% CI across all subjects for each condition
+#11. Plot the mean and 95% confidence intervals for each bin across all subjects
 #for each condition together in one single plot
 
 # Packages ----
@@ -212,12 +210,6 @@ hist(residuals(model5_fast)) #residuals are visually normally distributed
 #Model comparison
 anova(model1_fast, model2_fast, model3_fast, model4_fast, model5_fast)
 
-#calculate a robust model because of potential small violations of normality assumptions of residuals
-#same interpretation as for the non robust model
-robust_model_left_right <- rlm(horizontal_difference ~ ball_position + left_right, data = fast)
-summary(robust_model_left_right)
-tab_model(robust_model_left_right)
-
 #plot individuals with a for loop from 1 to 24
 for (i in 1:24) {
   individual_data <- filter(fast, subject==levels(as.factor(data_all$subject))[i])
@@ -319,12 +311,6 @@ hist(residuals(model5_moderate)) #residuals are visually normally distributed
 
 #Model comparison
 anova(model1_moderate, model2_moderate, model3_moderate, model4_moderate, model5_moderate)
-
-#calculate a robust model because of potential small violations of normality assumptions of residuals
-#same interpretation as for the non robust model
-robust_model_left_right <- rlm(horizontal_difference ~ ball_position + left_right, data = moderate)
-summary(robust_model_left_right)
-tab_model(robust_model_left_right)
 
 #plot individuals with a for loop from 1 to 24
 for (i in 1:24) {
@@ -430,12 +416,6 @@ hist(residuals(model5_slow)) #residuals are visually normally distributed
 
 #Model comparison
 anova(model1_slow, model2_slow, model3_slow, model4_slow, model5_slow)
-
-#calculate a robust model because of potential small violations of normality assumptions of residuals
-#robust model left_right not signicificant with less effect
-robust_model_left_right <- rlm(horizontal_difference ~ ball_position + left_right, data = slow)
-summary(robust_model_left_right)
-tab_model(robust_model_left_right)
 
 #plot individuals with a for loop from 1 to 24
 for (i in 1:24) {
