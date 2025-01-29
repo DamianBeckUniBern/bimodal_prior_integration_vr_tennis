@@ -1,6 +1,6 @@
 # Bayesian Tennis Experiment
 ## Can humans learn and use bimodal priors in complex sensorimotor behaviour?
-#Experimental task
+**Experimental task**
 ![Alt Text](./task.gif)
 
 This repo contains data and code for the analysis. Contains the following folders:
