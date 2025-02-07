@@ -8,7 +8,7 @@ This repo contains data and code for the analysis. Contains the following folder
 - **Code**
   - Python script to clean raw data and prepare data for the statistical analysis
   - R-scripts for the multilevel regression analysis and plots
-    - Separate scripts for day 1, 2, 3, and a combined for day 2+3
+    - Separate scripts for day 1, 2, 3, a combined script for day 2+3, a script for the control experiment, and a script to calculate the percentage of no hits and backswing hits
   - Execute the R scripts with the R-studio project "statistical_analysis"
 - **Data**
   - Prepared data for statistical analysis

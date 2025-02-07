@@ -643,53 +643,9 @@ p <- ggplot() +
 
 # Display and save the plot
 p
-ggsave(filename = "plots/all_subjects_day2.png", plot = p, width = 15, height = 13)
-ggsave(filename = "plots/all_subjects_day2.svg", plot = p, width = 15, height = 13)
+ggsave(filename = "plots/all_subjects_day2.png", plot = p, width = 17, height = 13)
+ggsave(filename = "plots/all_subjects_day2.svg", plot = p, width = 17, height = 13)
 
 
 
-# Load necessary libraries
-library(ggplot2)
-library(grid)
-
-# Data frame for plotting vertical arrows in the legend
-# Adjust 'x' values to position each arrow horizontally
-arrow_data <- data.frame(
-  x = c(1, 1.1, 1.2),          # horizontal positions for each arrow
-  y_start = c(1, 1, 1),    # starting y position (same for all)
-  y_end = c(3, 3, 3),      # ending y position to set arrow length (same for all)
-  condition = c("Fast", "Moderate", "Slow")
-)
-
-# Separate legend plot with three vertical bidirectional arrows next to each other
-legend_plot <- ggplot(arrow_data, aes(x = x, xend = x, y = y_start, yend = y_end, color = condition)) +
-  geom_segment(arrow = arrow(type = "closed", ends = "both", length = unit(0.3, "cm")), size = 1.5) +
-  
-  # Define color for each condition
-  scale_color_manual(values = c("Fast" = "red", "Moderate" = "blue", "Slow" = "green")) +
-  
-  # Add title for the separate legend plot
-  labs(title = "Bimodal Prior Effect") +
-  
-  # Adjust theme for a clean legend appearance
-  theme_minimal() +
-  theme(
-    axis.title = element_blank(),  # Remove axis titles
-    axis.text = element_blank(),   # Remove axis text
-    axis.ticks = element_blank(),  # Remove axis ticks
-    panel.grid = element_blank(),  # Remove grid lines
-    legend.position = "none",      # Remove any ggplot2 legend
-    plot.title = element_text(size = 30, hjust = 0.5),  # Center the title
-    plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm")     # Add some padding
-  ) +
-  coord_cartesian(clip = "off")  # Prevent clipping of arrows
-
-# Display the separate legend plot
-legend_plot
-
-# Save the separate legend plot as a PNG file
-ggsave(filename = "plots/legend_bidirectional_arrows.png", plot = legend_plot, width = 15, height = 13, units = "cm")
-
-# Save the separate legend plot as a SVG file
-ggsave(filename = "plots/legend_bidirectional_arrows.svg", plot = legend_plot, width = 15, height = 13, units = "cm")
 

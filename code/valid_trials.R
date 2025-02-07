@@ -8,6 +8,26 @@
 
 #calculate missing trials and backswing hits
 
+# Packages ----
+#---------------------------------------------------------------
+#install.packages("car", dependencies = TRUE)
+#install.packages("ggplot2", dependencies = TRUE)
+#install.packages("nlme", dependencies = TRUE)
+#install.packages("tidyverse", dependencies = TRUE)
+#install.packages("sjPlot", dependencies = TRUE)
+#install.packages("broom.mixed", dependencies = TRUE)
+#install.packages("psych", dependencies = TRUE)
+#install.packages("MASS", dependencies = TRUE)
+
+library(car)
+library(ggplot2)
+library(nlme)
+library(tidyverse)
+library(sjPlot)
+library(broom.mixed)
+library(psych)
+library(MASS)
+
 # Import data ----
 #---------------------------------------------------------------
 data_all_day1 <- read.csv("data/output_day1.csv")
@@ -54,3 +74,4 @@ number_of_backswing_hits_fast <- number_of_backswing_hits %>% filter(condition =
 dim(number_of_backswing_hits_fast)[1]
 percentage_of_backswing_hits_fast <- dim(number_of_backswing_hits_fast)[1] / 4*3/11520 * 100
 percentage_of_backswing_hits_fast #percentage of backswing hits is 4.95%
+

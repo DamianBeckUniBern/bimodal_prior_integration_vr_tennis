@@ -644,9 +644,16 @@ p <- ggplot() +
 
 # Display and save the plot
 p
-ggsave(filename = "plots/all_subjects_day1.png", plot = p, width = 15, height = 13)
-ggsave(filename = "plots/all_subjects_day1.svg", plot = p, width = 15, height = 13)
+ggsave(filename = "plots/all_subjects_day1.png", plot = p, width = 17, height = 13)
+ggsave(filename = "plots/all_subjects_day1.svg", plot = p, width = 17, height = 13)
 
+
+library(cowplot)
+legend <- cowplot::get_legend(p)
+legend
+legend_plot <- ggplot() + cowplot::draw_grob(legend) + theme_void()
+ggsave(filename = "plots/fig_legend.png", plot = legend_plot, width = 5, height = 5)
+ggsave(filename = "plots/fig_legend.svg", plot = legend_plot, width = 5, height = 5)
 
 
 # Load necessary libraries
@@ -658,7 +665,7 @@ library(grid)
 arrow_data <- data.frame(
   x = c(1, 1.1, 1.2),          # horizontal positions for each arrow
   y_start = c(1, 1, 1),    # starting y position (same for all)
-  y_end = c(3, 3, 3),      # ending y position to set arrow length (same for all)
+  y_end = c(1.2, 1.2, 1.2),      # ending y position to set arrow length (same for all)
   condition = c("Fast", "Moderate", "Slow")
 )
 

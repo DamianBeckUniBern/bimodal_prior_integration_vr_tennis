@@ -621,20 +621,20 @@ p <- ggplot() +
     panel.grid = element_blank(),  
     axis.line = element_line(linewidth = 1),    
     axis.ticks = element_line(linewidth = 1),
-    text = element_text(size = 26),         
-    axis.text = element_text(size = 26, face = "plain", color = "black"),    
-    axis.title = element_text(size = 26, face = "plain", color = "black"),   
-    legend.text = element_text(size = 26, margin = margin(b = 15)),  
-    legend.title = element_text(size = 26, face = "plain", color = "black"),
+    text = element_text(size = 30),         
+    axis.text = element_text(size = 30, face = "plain", color = "black"),    
+    axis.title = element_text(size = 30, face = "plain", color = "black"),   
+    legend.text = element_text(size = 30, margin = margin(b = 15)),  
+    legend.title = element_text(size = 30, face = "plain", color = "black"),
     legend.spacing.x = unit(1, "cm"),   
     legend.key.width = unit(2, "cm")
   )
 p
 
 # Save the plot
-ggsave(filename = "plots/control_linear.png", plot = p, width = 15, height = 13)
+ggsave(filename = "plots/control_linear.png", plot = p, width = 17, height = 13)
 # Save as vector graphic
-ggsave(filename = "plots/control_linear.svg", plot = p, width = 15, height = 13)
+ggsave(filename = "plots/control_linear.svg", plot = p, width = 17, height = 13)
 
 
 
