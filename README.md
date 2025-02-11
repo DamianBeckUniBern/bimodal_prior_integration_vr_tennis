@@ -17,7 +17,7 @@ This repo contains data and code for the analysis. Contains the following folder
 - **Plots**
   - All plots saved for each participant in each condition on each day and the summary plots of the aggregated plots of all participants
 - **Raw_data**
-  - Raw data after the experiment. There are two folders for each day: a folder for the participants ID 0-15 and 16-31. 24 participants in total (ID: 1-12, 15-19, 22-28). The remaining IDs served as a reserve
+  - Raw data after the experiment. There are two folders for each day: a folder for the participants ID 0-15 and 16-31. 24 participants in total (ID: 1-12, 15-19, 22-28) and for the control experiment (ID: 1-14, 16-20, 22-26). The remaining IDs served as a reserve
 - **Simulation**
   - Jupyter notebook for Bayesian predictions. Reads experimental protocol and estimates participants’ response based on a Bayesian model
 

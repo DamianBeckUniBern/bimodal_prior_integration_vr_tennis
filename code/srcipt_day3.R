@@ -153,10 +153,8 @@ model1_fast <- nlme::gls(horizontal_difference ~ 1,
 tab_model(model1_fast)
 
 #One predictor model
-#correlation = corAR1(form = ~1 |index) for growth models (Field, 2012)
 model2_fast <- nlme::gls(horizontal_difference ~ ball_position, 
                          data = fast,
-                         correlation = corAR1(form = ~ 1 | subject),
                          method = "ML",
                          na.action = na.exclude)
 tab_model(model2_fast)
@@ -165,7 +163,6 @@ summary(model2_fast)
 #random intercept model
 model3_fast <- nlme::lme(horizontal_difference ~ ball_position, 
                          data = fast,
-                         correlation = corAR1(form = ~ 1 | subject),
                          random = ~ 1|subject,
                          method = "ML",
                          na.action = na.exclude)
@@ -175,7 +172,6 @@ summary(model3_fast)
 #random slope model
 model4_fast <- nlme::lme(horizontal_difference ~ ball_position, 
                          data = fast,
-                         correlation = corAR1(form = ~ 1 | subject),
                          random = ~ ball_position|subject,
                          method = "ML",
                          na.action = na.exclude)
@@ -185,7 +181,6 @@ summary(model4_fast)
 #additional dummy predictor left_right
 model5_fast <- nlme::lme(horizontal_difference ~ ball_position + left_right, 
                          data = fast,
-                         correlation = corAR1(form = ~ 1 | subject),
                          random = ~ ball_position|subject,
                          method = "ML",
                          na.action = na.exclude)
@@ -255,10 +250,8 @@ model1_moderate <- nlme::gls(horizontal_difference ~ 1,
 tab_model(model1_moderate)
 
 #One predictor model
-#correlation = corAR1(form = ~1 |index) for growth models (Field, 2012)
 model2_moderate <- nlme::gls(horizontal_difference ~ ball_position, 
                              data = moderate,
-                             correlation = corAR1(form = ~ 1 | subject),
                              method = "ML",
                              na.action = na.exclude)
 tab_model(model2_moderate)
@@ -267,7 +260,6 @@ summary(model2_moderate)
 #random intercept model
 model3_moderate <- nlme::lme(horizontal_difference ~ ball_position, 
                              data = moderate,
-                             correlation = corAR1(form = ~ 1 | subject),
                              random = ~ 1|subject,
                              method = "ML",
                              na.action = na.exclude)
@@ -277,7 +269,6 @@ summary(model3_moderate)
 #random slope model
 model4_moderate <- nlme::lme(horizontal_difference ~ ball_position, 
                              data = moderate,
-                             correlation = corAR1(form = ~ 1 | subject),
                              random = ~ ball_position|subject,
                              method = "ML",
                              na.action = na.exclude)
@@ -287,7 +278,6 @@ summary(model4_moderate)
 #additional dummy predictor left_right
 model5_moderate <- nlme::lme(horizontal_difference ~ ball_position + left_right, 
                              data = moderate,
-                             correlation = corAR1(form = ~ 1 | subject),
                              random = ~ ball_position|subject,
                              method = "ML",
                              na.action = na.exclude)
@@ -356,11 +346,9 @@ model1_slow <- nlme::gls(horizontal_difference ~ 1,
                          na.action = na.exclude)
 tab_model(model1_slow)
 
-#correlation = corAR1(form = ~1 |index) for growth models (Field, 2012)
 #One predictor model
 model2_slow <- nlme::gls(horizontal_difference ~ ball_position, 
                          data = slow,
-                         correlation = corAR1(form = ~ 1 | subject),
                          method = "ML",
                          na.action = na.exclude)
 tab_model(model2_slow)
@@ -369,7 +357,6 @@ summary(model2_slow)
 #random intercept model
 model3_slow <- nlme::lme(horizontal_difference ~ ball_position, 
                          data = slow,
-                         correlation = corAR1(form = ~ 1 | subject),
                          random = ~ 1|subject,
                          method = "ML",
                          na.action = na.exclude)
@@ -379,7 +366,6 @@ summary(model3_slow)
 #random slope model
 model4_slow <- nlme::lme(horizontal_difference ~ ball_position, 
                          data = slow,
-                         correlation = corAR1(form = ~ 1 | subject),
                          random = ~ ball_position|subject,
                          method = "ML",
                          na.action = na.exclude)
@@ -389,7 +375,6 @@ summary(model4_slow)
 #additional dummy predictor left_right
 model5_slow <- nlme::lme(horizontal_difference ~ ball_position + left_right, 
                          data = slow,
-                         correlation = corAR1(form = ~ 1 | subject),
                          random = ~ ball_position|subject,
                          method = "ML",
                          na.action = na.exclude)

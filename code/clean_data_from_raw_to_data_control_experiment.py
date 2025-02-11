@@ -81,9 +81,7 @@ for index, row in selected_columns.iterrows():
     backswing_entry = backsing_check_session[(backsing_check_session['vp'] == subject) & (backsing_check_session['trial_number'] == trial_number)]['backswing'].values
     if len(backswing_entry) > 0:
         backswing_entry = backswing_entry[0]
-    else:
-        backswing_entry = None
-    selected_columns.at[index, 'backswing'] = backswing_entry
+        selected_columns.at[index, 'backswing'] = backswing_entry
 
 # Export the selected columns to a CSV file
 export_path = os.path.join(parent_folder, f'data\\output_control.csv')

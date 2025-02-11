@@ -156,10 +156,8 @@ model1_fast <- nlme::gls(horizontal_difference ~ 1,
 tab_model(model1_fast)
 
 #One predictor model
-#correlation = corAR1(form = ~1 |index) for growth models (Field, 2012)
 model2_fast <- nlme::gls(horizontal_difference ~ ball_position, 
                          data = fast,
-                         correlation = corAR1(form = ~ 1 | subject),
                          method = "ML",
                          na.action = na.exclude)
 tab_model(model2_fast)
@@ -168,7 +166,6 @@ summary(model2_fast)
 #random intercept model
 model3_fast <- nlme::lme(horizontal_difference ~ ball_position, 
                          data = fast,
-                         correlation = corAR1(form = ~ 1 | subject),
                          random = ~ 1|subject,
                          method = "ML",
                          na.action = na.exclude)
@@ -178,7 +175,6 @@ summary(model3_fast)
 #random slope model
 model4_fast <- nlme::lme(horizontal_difference ~ ball_position, 
                          data = fast,
-                         correlation = corAR1(form = ~ 1 | subject),
                          random = ~ ball_position|subject,
                          method = "ML",
                          na.action = na.exclude)
@@ -188,7 +184,6 @@ summary(model4_fast)
 #additional dummy predictor left_right
 model5_fast <- nlme::lme(horizontal_difference ~ ball_position + left_right, 
                          data = fast,
-                         correlation = corAR1(form = ~ 1 | subject),
                          random = ~ ball_position|subject,
                          method = "ML",
                          na.action = na.exclude)
@@ -258,10 +253,8 @@ model1_moderate <- nlme::gls(horizontal_difference ~ 1,
 tab_model(model1_moderate)
 
 #One predictor model
-#correlation = corAR1(form = ~1 |index) for growth models (Field, 2012)
 model2_moderate <- nlme::gls(horizontal_difference ~ ball_position, 
                              data = moderate,
-                             correlation = corAR1(form = ~ 1 | subject),
                              method = "ML",
                              na.action = na.exclude)
 tab_model(model2_moderate)
@@ -270,7 +263,6 @@ summary(model2_moderate)
 #random intercept model
 model3_moderate <- nlme::lme(horizontal_difference ~ ball_position, 
                              data = moderate,
-                             correlation = corAR1(form = ~ 1 | subject),
                              random = ~ 1|subject,
                              method = "ML",
                              na.action = na.exclude)
@@ -280,7 +272,6 @@ summary(model3_moderate)
 #random slope model
 model4_moderate <- nlme::lme(horizontal_difference ~ ball_position, 
                              data = moderate,
-                             correlation = corAR1(form = ~ 1 | subject),
                              random = ~ ball_position|subject,
                              method = "ML",
                              na.action = na.exclude)
@@ -290,7 +281,6 @@ summary(model4_moderate)
 #additional dummy predictor left_right
 model5_moderate <- nlme::lme(horizontal_difference ~ ball_position + left_right, 
                              data = moderate,
-                             correlation = corAR1(form = ~ 1 | subject),
                              random = ~ ball_position|subject,
                              method = "ML",
                              na.action = na.exclude)
@@ -359,11 +349,9 @@ model1_slow <- nlme::gls(horizontal_difference ~ 1,
                          na.action = na.exclude)
 tab_model(model1_slow)
 
-#correlation = corAR1(form = ~1 |index) for growth models (Field, 2012)
 #One predictor model
 model2_slow <- nlme::gls(horizontal_difference ~ ball_position, 
                          data = slow,
-                         correlation = corAR1(form = ~ 1 | subject),
                          method = "ML",
                          na.action = na.exclude)
 tab_model(model2_slow)
@@ -372,7 +360,6 @@ summary(model2_slow)
 #random intercept model
 model3_slow <- nlme::lme(horizontal_difference ~ ball_position, 
                          data = slow,
-                         correlation = corAR1(form = ~ 1 | subject),
                          random = ~ 1|subject,
                          method = "ML",
                          na.action = na.exclude)
@@ -382,7 +369,6 @@ summary(model3_slow)
 #random slope model
 model4_slow <- nlme::lme(horizontal_difference ~ ball_position, 
                          data = slow,
-                         correlation = corAR1(form = ~ 1 | subject),
                          random = ~ ball_position|subject,
                          method = "ML",
                          na.action = na.exclude)
@@ -392,7 +378,6 @@ summary(model4_slow)
 #additional dummy predictor left_right
 model5_slow <- nlme::lme(horizontal_difference ~ ball_position + left_right, 
                          data = slow,
-                         correlation = corAR1(form = ~ 1 | subject),
                          random = ~ ball_position|subject,
                          method = "ML",
                          na.action = na.exclude)
@@ -655,49 +640,4 @@ legend_plot <- ggplot() + cowplot::draw_grob(legend) + theme_void()
 ggsave(filename = "plots/fig_legend.png", plot = legend_plot, width = 5, height = 5)
 ggsave(filename = "plots/fig_legend.svg", plot = legend_plot, width = 5, height = 5)
 
-
-# Load necessary libraries
-library(ggplot2)
-library(grid)
-
-# Data frame for plotting vertical arrows in the legend
-# Adjust 'x' values to position each arrow horizontally
-arrow_data <- data.frame(
-  x = c(1, 1.1, 1.2),          # horizontal positions for each arrow
-  y_start = c(1, 1, 1),    # starting y position (same for all)
-  y_end = c(1.2, 1.2, 1.2),      # ending y position to set arrow length (same for all)
-  condition = c("Fast", "Moderate", "Slow")
-)
-
-# Separate legend plot with three vertical bidirectional arrows next to each other
-legend_plot <- ggplot(arrow_data, aes(x = x, xend = x, y = y_start, yend = y_end, color = condition)) +
-  geom_segment(arrow = arrow(type = "closed", ends = "both", length = unit(0.3, "cm")), size = 1.5) +
-  
-  # Define color for each condition
-  scale_color_manual(values = c("Fast" = "red", "Moderate" = "blue", "Slow" = "green")) +
-  
-  # Add title for the separate legend plot
-  labs(title = "Bimodal Prior Effect") +
-  
-  # Adjust theme for a clean legend appearance
-  theme_minimal() +
-  theme(
-    axis.title = element_blank(),  # Remove axis titles
-    axis.text = element_blank(),   # Remove axis text
-    axis.ticks = element_blank(),  # Remove axis ticks
-    panel.grid = element_blank(),  # Remove grid lines
-    legend.position = "none",      # Remove any ggplot2 legend
-    plot.title = element_text(size = 30, hjust = 0.5),  # Center the title
-    plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm")     # Add some padding
-  ) +
-  coord_cartesian(clip = "off")  # Prevent clipping of arrows
-
-# Display the separate legend plot
-legend_plot
-
-# Save the separate legend plot as a PNG file
-ggsave(filename = "plots/legend_bidirectional_arrows.png", plot = legend_plot, width = 15, height = 13, units = "cm")
-
-# Save the separate legend plot as a SVG file
-ggsave(filename = "plots/legend_bidirectional_arrows.svg", plot = legend_plot, width = 15, height = 13, units = "cm")
 
